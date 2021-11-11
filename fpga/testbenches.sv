@@ -1,4 +1,4 @@
-module i2s_testbench()
+module i2s_testbench();
    logic clk, reset, din, bck, lrck, scki;
    logic [23:0] left, right;
    logic [8:0]  i;
@@ -6,8 +6,8 @@ module i2s_testbench()
    // clk. if ns scale, then we're running @ 11.9 MHz
    initial 
      forever begin
-        clk = 1'b0; #42;
-        clk = 1'b1; #42;
+        clk = 1'b0; #5;
+        clk = 1'b1; #5;
    end
 
    initial begin
