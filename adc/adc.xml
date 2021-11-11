@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="D">
+  <design>
+    <source>/Users/alecvercruysse/Documents/hmc_classes/jr_fall/e155/final_project/adc/adc.sch</source>
+    <date>Tuesday, October 26, 2021 at 02:37:29 PM</date>
+    <tool>Eeschema (5.1.10-1-10_14)</tool>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title>Analog Front End</title>
+        <company>HMC Engineering 155</company>
+        <rev/>
+        <date/>
+        <source>adc.sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="J5">
+      <value>uMudd_40pin_conn</value>
+      <footprint>custom_components:S9175-ND</footprint>
+      <datasheet>http://pages.hmc.edu/brake/class/e155/fa21/assets/doc/Breadboard_Adapter_Schematic_v2.pdf</datasheet>
+      <libsource lib="custom_symbols" part="uMudd_40pin_conn" description="Generic connector, double row, 02x20, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>6173E180</tstamp>
+    </comp>
+    <comp ref="U1">
+      <value>PCM1808</value>
+      <footprint>Package_SO:TSSOP-14_4.4x5mm_P0.65mm</footprint>
+      <datasheet>https://www.ti.com/lit/ds/symlink/pcm1808.pdf</datasheet>
+      <libsource lib="custom_symbols" part="PCM1808" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>6174E57A</tstamp>
+    </comp>
+    <comp ref="C7">
+      <value>10uF</value>
+      <footprint>Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="CP1_Small" description="Polarized capacitor, small US symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>617848DA</tstamp>
+    </comp>
+    <comp ref="C8">
+      <value>0.1uF</value>
+      <footprint>Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>617850CE</tstamp>
+    </comp>
+    <comp ref="C2">
+      <value>1uF</value>
+      <footprint>Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>617ED50B</tstamp>
+    </comp>
+    <comp ref="C1">
+      <value>1uF</value>
+      <footprint>Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>61810797</tstamp>
+    </comp>
+    <comp ref="J3">
+      <value>SJ-3523-SMT-TR</value>
+      <footprint>Connector_Audio:Jack_3.5mm_CUI_SJ-3523-SMT_Horizontal</footprint>
+      <datasheet>https://www.cuidevices.com/product/resource/sj-352x-smt.pdf</datasheet>
+      <libsource lib="Connector" part="AudioJack3" description="Audio Jack, 3 Poles (Stereo / TRS)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>6181E3D3</tstamp>
+    </comp>
+    <comp ref="J4">
+      <value>SJ-3523-SMT-TR</value>
+      <footprint>Connector_Audio:Jack_3.5mm_CUI_SJ-3523-SMT_Horizontal</footprint>
+      <datasheet>https://www.cuidevices.com/product/resource/sj-352x-smt.pdf</datasheet>
+      <libsource lib="Connector" part="AudioJack3" description="Audio Jack, 3 Poles (Stereo / TRS)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>618ACC78</tstamp>
+    </comp>
+    <comp ref="J8">
+      <value>Servo Header</value>
+      <footprint>Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="Conn_01x03_Male" description="Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>61729B74</tstamp>
+    </comp>
+    <comp ref="J1">
+      <value>RCJ-2123</value>
+      <footprint>custom_components:Coaxial-RCJ-2123</footprint>
+      <datasheet>http://datasheets.diptrace.com/con_rca_jack/rcj-21xx.pdf</datasheet>
+      <fields>
+        <field name="MANUFACTURER">CUI</field>
+      </fields>
+      <libsource lib="custom_symbols" part="RCJ-2123" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>61743C70</tstamp>
+    </comp>
+    <comp ref="J2">
+      <value>RCJ-2123</value>
+      <footprint>custom_components:Coaxial-RCJ-2123</footprint>
+      <datasheet>http://datasheets.diptrace.com/con_rca_jack/rcj-21xx.pdf</datasheet>
+      <fields>
+        <field name="MANUFACTURER">CUI</field>
+      </fields>
+      <libsource lib="custom_symbols" part="RCJ-2123" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>6174F8A9</tstamp>
+    </comp>
+    <comp ref="C6">
+      <value>0.1uF</value>
+      <footprint>Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>617A9644</tstamp>
+    </comp>
+    <comp ref="C5">
+      <value>10uF</value>
+      <footprint>Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="CP1_Small" description="Polarized capacitor, small US symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>617A963E</tstamp>
+    </comp>
+    <comp ref="C4">
+      <value>0.1uF</value>
+      <footprint>Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>61796B46</tstamp>
+    </comp>
+    <comp ref="C3">
+      <value>10uF</value>
+      <footprint>Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="CP1_Small" description="Polarized capacitor, small US symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>61795EFE</tstamp>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="Connector" part="AudioJack3">
+      <description>Audio Jack, 3 Poles (Stereo / TRS)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Jack*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">AudioJack3</field>
+      </fields>
+      <pins>
+        <pin num="R" name="~" type="passive"/>
+        <pin num="S" name="~" type="passive"/>
+        <pin num="T" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector" part="Conn_01x03_Male">
+      <description>Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x03_Male</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="C">
+      <description>Unpolarized capacitor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>C_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">C</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="CP1_Small">
+      <description>Polarized capacitor, small US symbol</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>CP_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">CP1_Small</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="C_Small">
+      <description>Unpolarized capacitor, small symbol</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>C_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">C_Small</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="custom_symbols" part="PCM1808">
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">PCM1808</field>
+      </fields>
+      <pins>
+        <pin num="1" name="VREF" type="input"/>
+        <pin num="2" name="AGND" type="input"/>
+        <pin num="3" name="VCC" type="power_in"/>
+        <pin num="4" name="VDD" type="power_in"/>
+        <pin num="5" name="DGND" type="input"/>
+        <pin num="6" name="SCKI" type="input"/>
+        <pin num="7" name="LRCK" type="BiDi"/>
+        <pin num="8" name="BCK" type="BiDi"/>
+        <pin num="9" name="DOUT" type="output"/>
+        <pin num="10" name="MD0" type="input"/>
+        <pin num="11" name="MD1" type="input"/>
+        <pin num="12" name="FMT" type="input"/>
+        <pin num="13" name="VINL" type="input"/>
+        <pin num="14" name="VINR" type="input"/>
+      </pins>
+    </libpart>
+    <libpart lib="custom_symbols" part="RCJ-2123">
+      <docs>http://datasheets.diptrace.com/con_rca_jack/rcj-21xx.pdf</docs>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">RCJ-2123</field>
+        <field name="Footprint">custom_components:Coaxial-RCJ-2123</field>
+        <field name="MANUFACTURER">CUI</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+        <pin num="3" name="~" type="passive"/>
+        <pin num="4" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="custom_symbols" part="uMudd_40pin_conn">
+      <description>Generic connector, double row, 02x20, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_2x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">uMudd_40pin_conn</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+        <pin num="6" name="Pin_6" type="passive"/>
+        <pin num="7" name="Pin_7" type="passive"/>
+        <pin num="8" name="Pin_8" type="passive"/>
+        <pin num="9" name="Pin_9" type="passive"/>
+        <pin num="10" name="Pin_10" type="passive"/>
+        <pin num="11" name="Pin_11" type="passive"/>
+        <pin num="12" name="Pin_12" type="passive"/>
+        <pin num="13" name="Pin_13" type="passive"/>
+        <pin num="14" name="Pin_14" type="passive"/>
+        <pin num="15" name="Pin_15" type="passive"/>
+        <pin num="16" name="Pin_16" type="passive"/>
+        <pin num="17" name="Pin_17" type="passive"/>
+        <pin num="18" name="Pin_18" type="passive"/>
+        <pin num="19" name="Pin_19" type="passive"/>
+        <pin num="20" name="Pin_20" type="passive"/>
+        <pin num="21" name="Pin_21" type="passive"/>
+        <pin num="22" name="Pin_22" type="passive"/>
+        <pin num="23" name="Pin_23" type="passive"/>
+        <pin num="24" name="Pin_24" type="passive"/>
+        <pin num="25" name="Pin_25" type="passive"/>
+        <pin num="26" name="Pin_26" type="passive"/>
+        <pin num="27" name="Pin_27" type="passive"/>
+        <pin num="28" name="Pin_28" type="passive"/>
+        <pin num="29" name="Pin_29" type="passive"/>
+        <pin num="30" name="Pin_30" type="passive"/>
+        <pin num="31" name="Pin_31" type="passive"/>
+        <pin num="32" name="Pin_32" type="passive"/>
+        <pin num="33" name="Pin_33" type="passive"/>
+        <pin num="34" name="Pin_34" type="passive"/>
+        <pin num="35" name="Pin_35" type="passive"/>
+        <pin num="36" name="Pin_36" type="passive"/>
+        <pin num="37" name="Pin_37" type="passive"/>
+        <pin num="38" name="Pin_38" type="passive"/>
+        <pin num="39" name="Pin_39" type="passive"/>
+        <pin num="40" name="Pin_40" type="passive"/>
+      </pins>
+    </libpart>
+  </libparts>
+  <libraries>
+    <library logical="Connector">
+      <uri>/Library/Application Support/kicad/library/Connector.lib</uri>
+    </library>
+    <library logical="Device">
+      <uri>/Library/Application Support/kicad/library/Device.lib</uri>
+    </library>
+    <library logical="custom_symbols">
+      <uri>/Users/alecvercruysse/Documents/hmc_classes/jr_fall/e155/final_project/adc/custom_symbols.lib</uri>
+    </library>
+  </libraries>
+  <nets>
+    <net code="1" name="Net-(J5-Pad1)">
+      <node ref="J5" pin="1"/>
+    </net>
+    <net code="2" name="Net-(J5-Pad10)">
+      <node ref="J5" pin="10"/>
+    </net>
+    <net code="3" name="GND">
+      <node ref="C8" pin="2"/>
+      <node ref="J5" pin="11"/>
+      <node ref="J5" pin="15"/>
+      <node ref="C5" pin="2"/>
+      <node ref="J5" pin="19"/>
+      <node ref="C3" pin="2"/>
+      <node ref="J5" pin="3"/>
+      <node ref="C6" pin="2"/>
+      <node ref="J3" pin="S"/>
+      <node ref="C7" pin="2"/>
+      <node ref="J4" pin="S"/>
+      <node ref="J8" pin="3"/>
+      <node ref="J5" pin="7"/>
+      <node ref="C4" pin="2"/>
+      <node ref="J2" pin="3"/>
+      <node ref="J2" pin="1"/>
+      <node ref="U1" pin="2"/>
+      <node ref="J1" pin="3"/>
+      <node ref="U1" pin="5"/>
+      <node ref="J1" pin="1"/>
+    </net>
+    <net code="4" name="Net-(J5-Pad12)">
+      <node ref="J5" pin="12"/>
+    </net>
+    <net code="5" name="Net-(J5-Pad13)">
+      <node ref="J5" pin="13"/>
+    </net>
+    <net code="6" name="Net-(J5-Pad17)">
+      <node ref="J5" pin="17"/>
+    </net>
+    <net code="7" name="Net-(J5-Pad2)">
+      <node ref="J5" pin="2"/>
+    </net>
+    <net code="8" name="Net-(J5-Pad21)">
+      <node ref="J5" pin="21"/>
+    </net>
+    <net code="9" name="Net-(J5-Pad25)">
+      <node ref="J5" pin="25"/>
+    </net>
+    <net code="10" name="Net-(J5-Pad27)">
+      <node ref="J5" pin="27"/>
+    </net>
+    <net code="11" name="Net-(J5-Pad28)">
+      <node ref="J5" pin="28"/>
+    </net>
+    <net code="12" name="Net-(J5-Pad29)">
+      <node ref="J5" pin="29"/>
+    </net>
+    <net code="13" name="Net-(J5-Pad30)">
+      <node ref="J5" pin="30"/>
+    </net>
+    <net code="14" name="Net-(J5-Pad31)">
+      <node ref="J5" pin="31"/>
+    </net>
+    <net code="15" name="Net-(J5-Pad32)">
+      <node ref="J5" pin="32"/>
+    </net>
+    <net code="16" name="Net-(J5-Pad33)">
+      <node ref="J5" pin="33"/>
+    </net>
+    <net code="17" name="Net-(J5-Pad34)">
+      <node ref="J5" pin="34"/>
+    </net>
+    <net code="18" name="Net-(J5-Pad35)">
+      <node ref="J5" pin="35"/>
+    </net>
+    <net code="19" name="Net-(J5-Pad36)">
+      <node ref="J5" pin="36"/>
+    </net>
+    <net code="20" name="Net-(J5-Pad37)">
+      <node ref="J5" pin="37"/>
+    </net>
+    <net code="21" name="Net-(J5-Pad38)">
+      <node ref="J5" pin="38"/>
+    </net>
+    <net code="22" name="Net-(J5-Pad39)">
+      <node ref="J5" pin="39"/>
+    </net>
+    <net code="23" name="Net-(J5-Pad4)">
+      <node ref="J5" pin="4"/>
+    </net>
+    <net code="24" name="Net-(J5-Pad40)">
+      <node ref="J5" pin="40"/>
+    </net>
+    <net code="25" name="+5V">
+      <node ref="J5" pin="5"/>
+      <node ref="C3" pin="1"/>
+      <node ref="C4" pin="1"/>
+      <node ref="U1" pin="3"/>
+      <node ref="J8" pin="2"/>
+    </net>
+    <net code="26" name="Net-(J5-Pad6)">
+      <node ref="J5" pin="6"/>
+    </net>
+    <net code="27" name="Net-(J5-Pad8)">
+      <node ref="J5" pin="8"/>
+    </net>
+    <net code="28" name="+3V3">
+      <node ref="C5" pin="1"/>
+      <node ref="J5" pin="9"/>
+      <node ref="C6" pin="1"/>
+      <node ref="U1" pin="4"/>
+    </net>
+    <net code="29" name="/VREF">
+      <node ref="U1" pin="1"/>
+      <node ref="C7" pin="1"/>
+      <node ref="C8" pin="1"/>
+    </net>
+    <net code="30" name="Net-(C1-Pad1)">
+      <node ref="J4" pin="R"/>
+      <node ref="J1" pin="2"/>
+      <node ref="J2" pin="2"/>
+      <node ref="C1" pin="1"/>
+      <node ref="J3" pin="R"/>
+    </net>
+    <net code="31" name="/PA5_H4">
+      <node ref="J5" pin="14"/>
+      <node ref="U1" pin="6"/>
+    </net>
+    <net code="32" name="/PA6_J1">
+      <node ref="J5" pin="16"/>
+      <node ref="U1" pin="7"/>
+    </net>
+    <net code="33" name="/PA7_J2">
+      <node ref="J5" pin="18"/>
+      <node ref="U1" pin="8"/>
+    </net>
+    <net code="34" name="/PB6_G12">
+      <node ref="J5" pin="20"/>
+      <node ref="U1" pin="9"/>
+    </net>
+    <net code="35" name="/PC7_H13">
+      <node ref="J5" pin="22"/>
+      <node ref="U1" pin="10"/>
+    </net>
+    <net code="36" name="/PA9_H10">
+      <node ref="J5" pin="24"/>
+      <node ref="U1" pin="11"/>
+    </net>
+    <net code="37" name="/PA8_J10">
+      <node ref="J5" pin="26"/>
+      <node ref="U1" pin="12"/>
+    </net>
+    <net code="38" name="/PA0">
+      <node ref="J8" pin="1"/>
+      <node ref="J5" pin="23"/>
+    </net>
+    <net code="39" name="Net-(C2-Pad1)">
+      <node ref="J1" pin="4"/>
+      <node ref="J2" pin="4"/>
+      <node ref="J3" pin="T"/>
+      <node ref="C2" pin="1"/>
+      <node ref="J4" pin="T"/>
+    </net>
+    <net code="40" name="/VINR">
+      <node ref="C1" pin="2"/>
+      <node ref="U1" pin="14"/>
+    </net>
+    <net code="41" name="/VINL">
+      <node ref="C2" pin="2"/>
+      <node ref="U1" pin="13"/>
+    </net>
+  </nets>
+</export>
