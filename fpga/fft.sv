@@ -1,4 +1,3 @@
-
 // the width is the bit width (e.g. if width=16, 16 real and 16 im bits).
 // the input should be width-5 to account for bit growth.
 module fft
@@ -31,9 +30,27 @@ module fft_twiddleROM(input logic clk,
                       input logic  twiddleadr,
                       output logic twiddle_re
                       output logic twiddle_im);
+   // todo sizes of input
 
 
 endmodule // fft_twiddleROM
+
+
+// make sure the script rom/hann.py has been run with
+// the desired width!
+module hann_lut
+  #(parameter width = 16)
+   (input logic              clk,
+    input logic  [10:0]      idx,
+    output logic [wdith-1:0] out);
+
+   logic [width-1:0]         vectors [0:2047];
+   initial $readmemb("rom/hann.vectors", vectors);
+
+   always @(posedge clk)
+     out <= vectors[idx];
+   
+endmodule // hann_lut
 
 module fft_butterfly
   #(paramter width = 16)
