@@ -4,9 +4,17 @@ module fft
   #(parameter width = 16)
    (input logic  clk,
     input logic  start,
+    input logic  [2*width-1] rd, // read data
+    output logic [2*width-1] wd, // write data
     output logic done);
+
+   logic         rdsel;   // read from RAM0 or RAM1
+   logic         we0 we1; // RAMx write enable
+   logic [10:0]  adr0a, ard0b, adr1a, adr1b;
+   logic [9:0]   twiddleadr; // twiddle ROM adr
    
-   
+   agu fft_agu(clk, start, done,
+
 endmodule // fft
 
 // 11-bit addressing for 2048 unique values (2048-point fft).
@@ -21,23 +29,31 @@ module fft_agu
     output logic we1,
     output logic [10:0] adr1a,
     output logic [10:0] adr1b,
-    output logic twiddleadr);
-   // TODO: twiddle adr size? 
+    output logic [9:0] twiddleadr);
 
 endmodule // fft_agu
 
-module fft_twiddleROM(input logic clk,
-                      input logic  twiddleadr,
-                      output logic twiddle_re
-                      output logic twiddle_im);
-   // todo sizes of input
+module fft_twiddleROM 
+  #(parameter width=16)
+   (input logic clk,
+    input logic  [9:0] twiddleadr, // 0 - 1023 = 10 bits
+    output logic [2*width-1:0] twiddle);
 
+   // twiddle table pseudocode: w[k] = w[k-1] * w, 
+   // where w[0] = 1 and w = exp(-j 2pi/N) 
+   // for k=0... N/2-1
 
+   logic [2*width-1:0]         vectors [0:1023];
+   initial $readmemb("rom/twiddle.vectors", vectors);
+
+   always @(posedge clk)
+     out <= vectors[idx];
+   
 endmodule // fft_twiddleROM
 
 
 // make sure the script rom/hann.py has been run with
-// the desired width!
+// the desired width! the `width` param should be equal to `q` in the script.
 module hann_lut
   #(parameter width = 16)
    (input logic              clk,
