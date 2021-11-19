@@ -15,6 +15,10 @@ module final_fpga(input logic         clk,   // 12MHz MAX1000 clk    H6
 
    logic                              newsample;
    i2s pcm_in(clk, reset, din, bck, lrck, scki, left, right, newsample);
+	
+	logic start, done;
+	logic [31:0] rd, wd;
+	fft fft(clk, start, rd, wd, done);
    
 endmodule // final_fpga
 
@@ -41,7 +45,7 @@ module i2s(input logic         clk,
         if (reset)
           prescaler <= 0;
         else
-          prescaler <= prescaler + 1;
+          prescaler <= prescaler + 9'd1;
      end   
    /////////////////// end clock ////////////////////////////////
 

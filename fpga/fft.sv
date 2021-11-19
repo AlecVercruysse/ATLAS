@@ -1,32 +1,30 @@
 // the width is the bit width (e.g. if width=16, 16 real and 16 im bits).
 // the input should be width-5 to account for bit growth.
 module fft
-  #(parameter width=16, N_2=11, N=2048) // N_2 is log base 2 of N (points)
+  #(parameter width=16, N_2=11) // N_2 is log base 2 of N (points)
    (input logic  clk,
     input logic  start,
-    input logic  [2*width-1] rd, // read data
-    output logic [2*width-1] wd, // write data
+    input logic  [2*width-1:0] rd, // read data
+    output logic [2*width-1:0] wd, // write data
     output logic done);
 
    logic              rdsel;   // read from RAM0 or RAM1
-   logic              we0 we1; // RAMx write enable
-   logic [N_2 - 1:0]  adr0a, ard0b, adr1a, adr1b;
+   logic              we0, we1; // RAMx write enable
+   logic [N_2 - 1:0]  adr0a, adr0b, adr1a, adr1b;
    logic [N_2 - 2:0]  twiddleadr; // twiddle ROM adr
    logic [2*width-1:0] twiddle, a, b, aout, bout, rd0a, rd0b, rd1a, rd1b;
 
+   // TODO LOAD LOGIC!!
 
-   agu #(width, N_2) fft_agu(clk, start, done, rdsel, we0, adr0a, adr0b, we1, adr1a, adr1b, adr1a, adr1b, twiddleadr);
-   twiddlerom #(width, N_2, N) fft_twiddleROM(clk, twiddleadr, twiddle);
+   fft_agu #(width, N_2) agu(clk, start, done, rdsel, we0, adr0a, adr0b, we1, adr1a, adr1b, twiddleadr);
+   fft_twiddleROM #(width, N_2) twiddlerom(clk, twiddleadr, twiddle);
 
-   ram0 #(width, N_2) twoport_RAM(clk, we0, adr0a, adr0b, aout, bout, rd0a, rd0b);
-   ram1 #(width, N_2) twoport_RAM(clk, we1, adr1a, adr1b, aout, bout, rd1a, rd1b);
+   twoport_RAM #(width, N_2) ram0(clk, we0, adr0a, adr0b, aout, bout, rd0a, rd0b);
+   twoport_RAM #(width, N_2) ram1(clk, we1, adr1a, adr1b, aout, bout, rd1a, rd1b);
    assign a = rdsel ? rd1a : rd0a;
    assign b = rdsel ? rd1b : rd0b;
 
-   
-   bgu #(width) fft_butterfly(twiddle, a, b, aout, bout);
-   
-   
+   fft_butterfly #(width) bgu(twiddle, a, b, aout, bout);
 
 endmodule // fft
 
@@ -36,7 +34,7 @@ module fft_agu
     input logic  start,
     output logic done,
     output logic rdsel,
-    output logic we0
+    output logic we0,
     output logic [N_2-1:0] adr0a,
     output logic [N_2-1:0] ard0b,
     output logic we1,
@@ -47,7 +45,7 @@ module fft_agu
 endmodule // fft_agu
 
 module fft_twiddleROM 
-  #(parameter width=16, N_2=11, N=2048)
+  #(parameter width=16, N_2=11)
    (input logic  clk,
     input logic  [N_2-2:0] twiddleadr, // 0 - 1023 = 10 bits
     output logic [2*width-1:0] twiddle);
@@ -56,11 +54,11 @@ module fft_twiddleROM
    // where w[0] = 1 and w = exp(-j 2pi/N) 
    // for k=0... N/2-1
 
-   logic [2*width-1:0]         vectors [0:N/2-1];
+   logic [2*width-1:0]         vectors [0:2**(N_2-1)-1];
    initial $readmemb("rom/twiddle.vectors", vectors);
 
    always @(posedge clk)
-     out <= vectors[idx];
+     twiddle <= vectors[twiddleadr];
    
 endmodule // fft_twiddleROM
 
@@ -82,15 +80,15 @@ module hann_lut
 endmodule // hann_lut
 
 module fft_butterfly
-  #(paramter width=16)
+  #(parameter width=16)
    (input logic [2*width-1:0] twiddle,
     input logic [2*width-1:0]  a,
     input logic [2*width-1:0]  b,
     output logic [2*width-1:0] aout,
     output logic [2*width-1:0] bout);
 
-   signed logic [width-1:0]           twiddle_re, twiddle_im, a_re, a_im, b_re, b_im, aout_re, aout_im, bout_re, bout_im;
-   signed logic [width-1:0]           b_re_mult, b_im_mult;
+   logic signed [width-1:0]           twiddle_re, twiddle_im, a_re, a_im, b_re, b_im, aout_re, aout_im, bout_re, bout_im;
+   logic signed [width-1:0]           b_re_mult, b_im_mult;
 
    // expand to re and im components 
    assign twiddle_re = twiddle[2*width-1:width];
@@ -126,7 +124,7 @@ module twoport_RAM
     output logic [2*width-1:0] rda,
     output logic [2*width-1:0] rdb);
 
-   reg [N_2-1:0]              mem [2*width-1:0];
+   reg [2*width-1:0]              mem [2**N_2-1:0];
 
    always @(posedge clk)
      if (we) 
