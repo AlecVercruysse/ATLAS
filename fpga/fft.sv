@@ -1,7 +1,7 @@
 // the width is the bit width (e.g. if width=16, 16 real and 16 im bits).
 // the input should be width-5 to account for bit growth.
 module fft
-  #(parameter width=16, N_2=11) // N_2 is log base 2 of N (points)
+  #(parameter width=16, N_2=5) // N_2 is log base 2 of N (points)
    (input logic  clk,
     input logic  start,
     input logic  [2*width-1:0] rd, // read data
@@ -29,7 +29,7 @@ module fft
 endmodule // fft
 
 module fft_agu
-  #(parameter width=16, N_2=11)
+  #(parameter width=16, N_2=5)
    (input logic  clk,
     input logic  start,
     output logic done,
@@ -45,7 +45,7 @@ module fft_agu
 endmodule // fft_agu
 
 module fft_twiddleROM 
-  #(parameter width=16, N_2=11)
+  #(parameter width=16, N_2=5)
    (input logic  clk,
     input logic  [N_2-2:0] twiddleadr, // 0 - 1023 = 10 bits
     output logic [2*width-1:0] twiddle);
@@ -66,12 +66,12 @@ endmodule // fft_twiddleROM
 // make sure the script rom/hann.py has been run with
 // the desired width! the `width` param should be equal to `q` in the script.
 module hann_lut
-  #(parameter width=16, N_2=11, N=2048)
+  #(parameter width=16, N_2=5)
    (input logic              clk,
     input logic [N_2-1:0]    idx,
     output logic [width-1:0] out);
 
-   logic [width-1:0]         vectors [0:N-1];
+   logic [width-1:0]         vectors[2**N_2-1:0];
    initial $readmemb("rom/hann.vectors", vectors);
 
    always @(posedge clk)
@@ -133,7 +133,7 @@ endmodule // fft_butterfly
 
 // adapted from HDL example 5.7 in Harris TB
 module twoport_RAM
-  #(parameter width = 16, N_2 = 11)
+  #(parameter width=16, N_2=5)
    (input logic                clk,
     input logic                we,
     input logic [N_2-1:0]     adra,
