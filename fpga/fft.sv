@@ -79,6 +79,21 @@ module hann_lut
    
 endmodule // hann_lut
 
+module complex_mult 
+  #(parameter width=16)
+  (input logic [2*width-1:0] a,
+	input logic [2*width-1:0] b,
+	output logic [2*width-1:0] out);
+	
+	logic signed [width-1:0] a_re, a_im, b_re, b_im, out_re, out_im;
+	assign a_re = a[31:16]; assign a_im = a[15:0];
+	assign b_re = b[31:16]; assign b_im = b[15:0];
+	
+	assign out_re = (a_re * b_re) - (a_im * b_im);
+	assign out_im = (a_re * b_im) + (a_im * b_re);
+	assign out = {out_re, out_im};
+endmodule // complex_mult
+	
 module fft_butterfly
   #(parameter width=16)
    (input logic [2*width-1:0] twiddle,
@@ -89,6 +104,8 @@ module fft_butterfly
 
    logic signed [width-1:0]           twiddle_re, twiddle_im, a_re, a_im, b_re, b_im, aout_re, aout_im, bout_re, bout_im;
    logic signed [width-1:0]           b_re_mult, b_im_mult;
+	logic        [2*width-1:0]         b_mult;
+
 
    // expand to re and im components 
    assign twiddle_re = twiddle[2*width-1:width];
@@ -101,8 +118,9 @@ module fft_butterfly
    assign bout = {bout_re, bout_im};
 
    // perform computation
-   assign b_re_mult = twiddle_re * b_re;
-   assign b_im_mult = twiddle_im * b_im;
+	complex_mult #(width) twiddle_mult(b, twiddle, b_mult);
+   assign b_re_mult = b_mult[31:16];
+   assign b_im_mult = b_mult[15:0];
 
    assign aout_re = a_re + b_re_mult;
    assign aout_im = a_im + b_im_mult;
@@ -111,6 +129,7 @@ module fft_butterfly
    assign bout_im = a_im - b_im_mult;
    
 endmodule // fft_butterfly
+
 
 // adapted from HDL example 5.7 in Harris TB
 module twoport_RAM
