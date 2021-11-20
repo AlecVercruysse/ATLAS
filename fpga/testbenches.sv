@@ -23,33 +23,10 @@ module i2s_testbench();
    end
 endmodule // i2s_testbench
 
-/**
-// untested
-module twiddlerom_testbench #(parameter width=16, N_2=11)();
-   logic clk;
-   logic [N_2-2:0] twiddleadr;
-   logic [2*width-1:0] twiddle;
 
-   // clk. if ns scale, then we're running @ 11.9 MHz
-   initial 
-     forever begin
-        clk = 1'b0; #5;
-        clk = 1'b1; #5;
-   end
-
-   initial begin
-      twiddleadr = 0;
-   end
-
-   always @(posedge clk) begin
-      twiddleadr = twiddleadr + 1'b1;
-
-   fft_twiddleROM #(width, N_2) dut(clk, twiddleadr, twiddle);
-
-endmodule // twiddlerom_testbench
-
-**/
-module hannrom_testbench #(parameter width=16, N_2=11)();
+// requires manually checking! compare to values in file.
+// need to copy the rom/ dir into the simulation/modelsim/ dir
+module hannrom_testbench #(parameter width=16, N_2=5)();
    logic clk;
    logic [N_2-1:0] idx;
    logic [width-1:0] out;
@@ -66,7 +43,8 @@ module hannrom_testbench #(parameter width=16, N_2=11)();
    end
 
    always @(posedge clk) begin
-      idx =idx + 1'b1;
+      idx =idx+1'b1;
+   end
 
    hann_lut dut(clk, idx, out);
 
@@ -107,3 +85,30 @@ module bgu_testbench #(parameter width=16)();
 
 endmodule // twiddlerom_testbench
 
+// verify that RAM works, and is fully two-port.
+// tested.
+module ram_testbench #(parameter width=16, N_2=5)();
+	logic clk;
+	initial 
+     forever begin
+        clk = 1'b0; #5;
+        clk = 1'b1; #5;
+   end
+	
+   logic               we;
+   logic [N_2-1:0]     adra;
+   logic [N_2-1:0]     adrb;
+   logic [2*width-1:0]  wda;
+   logic [2*width-1:0]  wdb;
+   logic [2*width-1:0] rda;
+   logic [2*width-1:0] rdb;
+	
+	twoport_RAM #(width, N_2) dut(clk, we, adra, adrb, wda, wdb, rda, rdb);
+	
+	initial begin
+		we = 0; adra = 0; adrb = 0; wda = 0; wdb = 0; rda = 0; rdb = 0; #10
+		adra = 10; adrb = 12; wda = 10; wdb = 12; we = 1; #10;
+		we = 0; #20; adra = 12; adrb = 10; #10; assert(rda === 12 && rdb === 10) else $error("ram test failed.");
+	end
+
+endmodule // ram_testbench
