@@ -7,7 +7,7 @@ module i2s_testbench();
      forever begin
         clk = 1'b0; #5;
         clk = 1'b1; #5;
-   end
+     end
 
    initial begin
       reset = 1'b1;
@@ -36,7 +36,7 @@ module hannrom_testbench #(parameter width=16, N_2=5)();
      forever begin
         clk = 1'b0; #5;
         clk = 1'b1; #5;
-   end
+     end
 
    initial begin
       idx = 0;
@@ -50,7 +50,7 @@ module hannrom_testbench #(parameter width=16, N_2=5)();
 
 endmodule // twiddlerom_testbench
 
-// tested
+// untested!! (new bgu implementation)
 module bgu_testbench #(parameter width=16)();
    logic clk;
    logic [2*width-1:0] twiddle;
@@ -63,22 +63,24 @@ module bgu_testbench #(parameter width=16)();
      forever begin
         clk = 1'b0; #5;
         clk = 1'b1; #5;
-   end
+     end
 
    initial begin
-		twiddle = 0;
-		a = 0;
-		b = 0;
-		aout = 0;
-		bout = 0; #10;
-		assert (aout===0 && bout===0) else $error("case 1 failed.");
-		
-		twiddle = {16'b1, 16'b0}; #10; assert(aout===0 && bout===0) else $error("case 2 failed.");
-		b = {16'b1, 16'b0}; #10; assert(aout==={16'b1,16'b0} && bout==={16'hFFFF, 16'b0}) else $error("case 3 failed.");
-		
-		// real test case: (truncated imag bout!)
-		twiddle = {16'h0012, 16'h0012}; a={16'hF00F, 16'hF00F}; b={16'h0101, 16'h0101}; #10;
-		assert(aout==={16'hF00F, 16'h1433} && bout==={16'hF00F, 16'hCBEB}) else $error("case 4 failed!");
+      twiddle = 0;
+      a = 0;
+      b = 0;
+      aout = 0;
+      bout = 0; #10;
+      assert (aout===0 && bout===0) else $error("case 1 failed.");
+     
+      twiddle = {16'h7FFF, 16'b0}; #10; assert(aout===0 && bout===0) else $error("case 2 failed.");
+      b = {16'h7FFF, 16'b0}; #10; assert(aout==={16'h7FFF,16'b0} && bout==={16'h8001, 16'b0}) else $error("case 3 failed.");
+      
+      // real test case:
+      // real b*w out: 0xEE59 (-4519). im b*w out: 0x58C2 (22722).
+      // aout: 141 + j27382. bout:  9179 - j18062.
+      twiddle = {16'h471C, 16'h6A6C}; a={16'h1234, 16'h1234; b={16'h3FFF, 16'h3FFF}; #10;
+      assert(aout==={16'h008D, 16'h6AF6} && bout==={16'h23DB, 16'hB972}) else $error("case 4 failed!");
    end
 
    fft_butterfly dut(twiddle, a, b, aout, bout);
@@ -88,27 +90,27 @@ endmodule // twiddlerom_testbench
 // verify that RAM works, and is fully two-port.
 // tested.
 module ram_testbench #(parameter width=16, N_2=5)();
-	logic clk;
-	initial 
+   logic clk;
+   initial 
      forever begin
         clk = 1'b0; #5;
         clk = 1'b1; #5;
-   end
-	
+     end
+   
    logic               we;
    logic [N_2-1:0]     adra;
    logic [N_2-1:0]     adrb;
-   logic [2*width-1:0]  wda;
-   logic [2*width-1:0]  wdb;
+   logic [2*width-1:0] wda;
+   logic [2*width-1:0] wdb;
    logic [2*width-1:0] rda;
    logic [2*width-1:0] rdb;
-	
-	twoport_RAM #(width, N_2) dut(clk, we, adra, adrb, wda, wdb, rda, rdb);
-	
-	initial begin
-		we = 0; adra = 0; adrb = 0; wda = 0; wdb = 0; rda = 0; rdb = 0; #10
-		adra = 10; adrb = 12; wda = 10; wdb = 12; we = 1; #10;
-		we = 0; #20; adra = 12; adrb = 10; #10; assert(rda === 12 && rdb === 10) else $error("ram test failed.");
-	end
+   
+   twoport_RAM #(width, N_2) dut(clk, we, adra, adrb, wda, wdb, rda, rdb);
+   
+   initial begin
+      we = 0; adra = 0; adrb = 0; wda = 0; wdb = 0; rda = 0; rdb = 0; #10
+	adra = 10; adrb = 12; wda = 10; wdb = 12; we = 1; #10;
+      we = 0; #20; adra = 12; adrb = 10; #10; assert(rda === 12 && rdb === 10) else $error("ram test failed.");
+   end
 
 endmodule // ram_testbench
