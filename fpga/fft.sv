@@ -28,30 +28,85 @@ module fft
 
 endmodule // fft
 
+// UNTESTED, TODO: TEST
 module fft_agu
   #(parameter width=16, N_2=5)
    (input logic  clk,
     input logic  start,
-    output logic done,
-    output logic rdsel,
-    output logic we0,
-    output logic [N_2-1:0] adr0a,
-    output logic [N_2-1:0] ard0b,
-    output logic we1,
-    output logic [N_2-1:0] adr1a,
-    output logic [N_2-1:0] adr1b,
-    output logic [N_2-2:0] twiddleadr);
+    output logic done, // √
+    output logic rdsel, // √
+    output logic we0, // v
+    output logic [N_2-1:0] adr0a, // √
+    output logic [N_2-1:0] ard0b, // √
+    output logic we1, // √
+    output logic [N_2-1:0] adr1a, // √
+    output logic [N_2-1:0] adr1b, // √
+    output logic [N_2-2:0] twiddleadr); // √
+
+    logic [31:0] fftLevel = 0;
+    logic [31:0] flyInd = 0;
+
+    logic [N_2-1:0] adrA;
+    logic [N_2-1:0] adrB;
+
+    always_ff @(posedge clk) begin
+      // Increment fftLevel and flyInd
+      if(start == 1) begin
+        if(flyInd < width) begin // TODO: When does flyIND increase? When > width?
+          flyInd <= flyInd + 1;
+        end else begin
+          flyInd <= 0;
+          fftLevel <= fftLevel + 1;
+        end
+      end
+    end
+
+    // sets done when we are finished with the fft
+    assign done = (fftLevel == (N_2 + 1))
+    adrCalc #(width, N_2) calcAddr(fftLevel, flyInd, adrA, adrB, twiddleAdr);
+
+    assign adr0a = adrA;
+    assign adr1a = adrA;
+
+    assign adr0b = adrB;
+    assign adr1b = adrB;
+
+    // flips every cycle
+    assign we0 = flyInd[0];
+    assign we1 = ~flyInd[0];
+
+    // flips every cycle, TODO: should this start on 0? Which RAM do we preload?
+    assign rdsel = flyInd[0];
 
 endmodule // fft_agu
 
-module fft_twiddleROM 
+// UNTESTED, TODO: TEST
+module calcAddr
+ #(parameter width=16, N_2=5)
+  (input logic  [31:0]    fftLevel,
+   input logic  [31:0]    flyInd,
+   output logic [N_2-1:0] adrA
+   output logic [N_2-1:0] adrB
+   output logic [N_2-2:0] twiddleadr);
+
+  logic [N_2-1:0] tempA = flyInd << 1;
+  logic [N_2-1:0] tempB = tempA + 32'd1;
+
+  always_comb begin
+    adrA = ((tempA << fftLevel) | ((tempA >> (N_2 - fftLevel)) & 32'h1f;
+    adrB = ((tempB << fftLevel) | ((tempB >> (N_2 - fftLevel)) & 32'h1f;
+    twiddleadr = ((32'hfffffff0 >> fftLevel) & 32'hf) & flyInd;
+  end
+endmodule // calcAddr
+
+module fft_twiddleROM
   #(parameter width=16, N_2=5)
    (input logic  clk,
     input logic  [N_2-2:0] twiddleadr, // 0 - 1023 = 10 bits
     output logic [2*width-1:0] twiddle);
 
-   // twiddle table pseudocode: w[k] = w[k-1] * w, 
-   // where w[0] = 1 and w = exp(-j 2pi/N) 
+   // twiddle table pseudocode: w[k] = w[k-1] * w,
+   // where w[0] = 1 and w = exp(-j 2pi/N)
    // for k=0... N/2-1
 
    logic [2*width-1:0]         vectors [0:2**(N_2-1)-1];
@@ -59,7 +114,7 @@ module fft_twiddleROM
 
    always @(posedge clk)
      twiddle <= vectors[twiddleadr];
-   
+
 endmodule // fft_twiddleROM
 
 
@@ -76,7 +131,7 @@ module hann_lut
 
    always @(posedge clk)
      out <= vectors[idx];
-   
+
 endmodule // hann_lut
 
 
@@ -88,21 +143,21 @@ module mult
     output logic signed [width-1:0] out);
 
    logic [2*width-1:0]              untruncated_out;
-   
+
    assign untruncated_out = a * b;
    assign out = untruncated_out[30:15];
    // see slade paper. this works as long as we're not
    // multiplying two maximum mag. negative numbers.
-   
+
 endmodule // mult
 
-   
-module complex_mult 
+
+module complex_mult
   #(parameter width=16)
   (input logic [2*width-1:0] a,
    input logic [2*width-1:0]  b,
    output logic [2*width-1:0] out);
-	
+
    logic signed [width-1:0]   a_re, a_im, b_re, b_im, out_re, out_im;
    assign a_re = a[31:16]; assign a_im = a[15:0];
    assign b_re = b[31:16]; assign b_im = b[15:0];
@@ -112,12 +167,12 @@ module complex_mult
    mult #(width) m2 (a_im, b_im, a_im_b_im);
    mult #(width) m3 (a_re, b_im, a_re_b_im);
    mult #(width) m4 (a_im, b_re, a_im_b_re);
-   
+
    assign out_re = (a_re_be_re) - (a_im_b_im);
    assign out_im = (a_re_b_im) + (a_im_b_re);
    assign out = {out_re, out_im};
 endmodule // complex_mult
-	
+
 module fft_butterfly
   #(parameter width=16)
    (input logic [2*width-1:0] twiddle,
@@ -131,7 +186,7 @@ module fft_butterfly
 	logic        [2*width-1:0]         b_mult;
 
 
-   // expand to re and im components 
+   // expand to re and im components
    assign twiddle_re = twiddle[2*width-1:width];
    assign twiddle_im = twiddle[width-1:0];
    assign a_re = a[2*width-1:width];
@@ -151,7 +206,7 @@ module fft_butterfly
 
    assign bout_re = a_re - b_re_mult;
    assign bout_im = a_im - b_im_mult;
-   
+
 endmodule // fft_butterfly
 
 
@@ -170,7 +225,7 @@ module twoport_RAM
    reg [2*width-1:0]              mem [2**N_2-1:0];
 
    always @(posedge clk)
-     if (we) 
+     if (we)
        begin
           mem[adra] <= wda;
           mem[adrb] <= wdb;
@@ -178,5 +233,5 @@ module twoport_RAM
 
    assign rda = mem[adra];
    assign rdb = mem[adrb];
-   
+
 endmodule // twoport_RAM

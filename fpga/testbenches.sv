@@ -2,8 +2,8 @@ module i2s_testbench();
    logic clk, reset, din, bck, lrck, scki;
    logic [23:0] left, right;
    logic [8:0]  i;
-   
-   initial 
+
+   initial
      forever begin
         clk = 1'b0; #5;
         clk = 1'b1; #5;
@@ -13,7 +13,7 @@ module i2s_testbench();
       reset = 1'b1;
       i = 0;
    end
-   
+
    i2s dut(clk, reset, din, bck, lrck, scki, left, right);
 
    always @(posedge clk) begin
@@ -32,7 +32,7 @@ module hannrom_testbench #(parameter width=16, N_2=5)();
    logic [width-1:0] out;
 
    // clk. if ns scale, then we're running @ 11.9 MHz
-   initial 
+   initial
      forever begin
         clk = 1'b0; #5;
         clk = 1'b1; #5;
@@ -59,7 +59,7 @@ module bgu_testbench #(parameter width=16)();
    logic [2*width-1:0] aout;
    logic [2*width-1:0] bout;
 
-   initial 
+   initial
      forever begin
         clk = 1'b0; #5;
         clk = 1'b1; #5;
@@ -72,16 +72,16 @@ module bgu_testbench #(parameter width=16)();
       aout = 0;
       bout = 0; #10;
       assert (aout===0 && bout===0) else $error("case 1 failed.");
-     
+
       twiddle = {16'h7FFF, 16'b0}; #10; assert(aout===0 && bout===0) else $error("case 2 failed.");
       b = {16'h7FFF, 16'b0}; #10; assert(aout==={16'h7FFE,16'b0} && bout==={16'h8002, 16'b0}) else $error("case 3 failed.");
-      
+
       // real test case:
       // real b*w out: 0xEE59 (-4520). im b*w out: 0x58C2 (22722).
       // aout: 141 + j27382. bout:  9179 - j18062.
       twiddle = {16'h471C, 16'h6A6C}; a={16'h1234, 16'h1234}; b={16'h3FFF, 16'h3FFF}; #10;
       assert(aout==={16'h008C, 16'h6AF6} && bout==={16'h23DC, 16'hB972}) else $error("case 4 failed!");
-      
+
       $display("BGU tests complete.");
    end
 
@@ -93,12 +93,12 @@ endmodule // twiddlerom_testbench
 // tested.
 module ram_testbench #(parameter width=16, N_2=5)();
    logic clk;
-   initial 
+   initial
      forever begin
         clk = 1'b0; #5;
         clk = 1'b1; #5;
      end
-   
+
    logic               we;
    logic [N_2-1:0]     adra;
    logic [N_2-1:0]     adrb;
@@ -106,13 +106,50 @@ module ram_testbench #(parameter width=16, N_2=5)();
    logic [2*width-1:0] wdb;
    logic [2*width-1:0] rda;
    logic [2*width-1:0] rdb;
-   
+
    twoport_RAM #(width, N_2) dut(clk, we, adra, adrb, wda, wdb, rda, rdb);
-   
+
    initial begin
       we = 0; adra = 0; adrb = 0; wda = 0; wdb = 0; rda = 0; rdb = 0; #10
 	adra = 10; adrb = 12; wda = 10; wdb = 12; we = 1; #10;
       we = 0; #20; adra = 12; adrb = 10; #10; assert(rda === 12 && rdb === 10) else $error("ram test failed.");
    end
+
+endmodule // ram_testbench
+
+// verify that agu works. UNSTESTED.
+// Requires manually viewing waveforms
+// Unsure of exactly what the correct waveforms will look like
+module agu_testbench #(parameter width=16, N_2=5)();
+
+  // inputs
+	logic clk;
+	initial
+     forever begin
+        clk = 1'b0; #5;
+        clk = 1'b1; #5;
+   end
+   logic  start;
+
+   // outputs
+   logic done;
+   logic rdsel;
+   logic we0;
+   logic [N_2-1:0] adr0a;
+   logic [N_2-1:0] ard0b;
+   logic we1;
+   logic [N_2-1:0] adr1a;
+   logic [N_2-1:0] adr1b;
+   logic [N_2-2:0] twiddleadr;
+
+	fft_agu #(width, N_2) agu(clk, start, done, rdsel, we0, adr0a, adr0b, we1, adr1a, adr1b, twiddleadr);
+
+	initial begin
+    // init inputs and outputs to zero/default
+		start = 0; done = 0; rdsel = 0; we0 = 0; adr0a = 0; adr = 0; rda = 0; rdb = 0; #10;
+
+    // init inputs to starting values.
+		start = 1; #10;
+	end
 
 endmodule // ram_testbench
