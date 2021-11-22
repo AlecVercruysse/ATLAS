@@ -4,19 +4,26 @@ module fft
   #(parameter width=16, N_2=5) // N_2 is log base 2 of N (points)
    (input logic  clk,
     input logic  start,
-    input logic  [2*width-1:0] rd, // read data
-    output logic [2*width-1:0] wd, // write data
+	 input logic  load,
+    input logic  [width-1:0] rd,   // real    read data in
+    output logic [2*width-1:0] wd, // complex write data out
     output logic done);
 
+	logic              enable;  // for AGU operation (TODO: rename AGU input to enable)
    logic              rdsel;   // read from RAM0 or RAM1
    logic              we0, we1; // RAMx write enable
-   logic [N_2 - 1:0]  adr0a, adr0b, adr1a, adr1b;
+   logic [N_2 - 1:0]  adr0a_agu, adr0b_agu, adr0a_load, adr0b_load, adr1a, adr1b;
    logic [N_2 - 2:0]  twiddleadr; // twiddle ROM adr
-   logic [2*width-1:0] twiddle, a, b, aout, bout, rd0a, rd0b, rd1a, rd1b;
+   logic [2*width-1:0] twiddle, a, b, writea, writeb, aout, bout, rd0a, rd0b, rd1a, rd1b, val_in;
 
    // TODO LOAD LOGIC!!
-
-   fft_agu #(width, N_2) agu(clk, start, done, rdsel, we0, adr0a, adr0b, we1, adr1a, adr1b, twiddleadr);
+	fft_load #(width, N_2) loader(clk, load, done, rd, adr0a_load, adr0b_load, val_in);
+	assign adr0a = load ? adr0a_load : adr0a_agu;
+	assign adr0b = load ? adr0b_load : adr0b_agu;
+	assign writea = load ? val_in   : aout;
+	assign writeb = load ? rd0b : bout; // we don't want to write into b, so have it write whatever its reading
+	
+   fft_agu #(width, N_2) agu(clk, enable, done, rdsel, we0, adr0a, adr0b, we1, adr1a, adr1b, twiddleadr);
    fft_twiddleROM #(width, N_2) twiddlerom(clk, twiddleadr, twiddle);
 
    twoport_RAM #(width, N_2) ram0(clk, we0, adr0a, adr0b, aout, bout, rd0a, rd0b);
@@ -27,6 +34,55 @@ module fft
    fft_butterfly #(width) bgu(twiddle, a, b, aout, bout);
 
 endmodule // fft
+
+module fft_load 
+	#(parameter width=16, N_2=5, hann=0) // hann: bool, whether or not to window.
+	(input logic clk,
+	 input logic load,
+	 input logic done, // used as a reset
+	 input logic [width-1:0] rd,
+	 input logic [N_2-1:0] adr0a_load,
+	 input logic [N_2-1:0] adr0b_load,
+	 input logic [2*width-1:0] val_in,)
+	 
+	 logic [N_2-1:0]       idx;
+	 
+	 bit_reverse #(N_2) reverseaddr(idx, adr0a_load);
+	 assign adr0b_load = adr0a_load + 1'b1; // just don't be adr0a
+	 // we don't want to write two values at once. So we just tie
+	 // the write b to the read b, and generate an address that
+	 // is not adr0a so it does not interfere.
+	 
+	 always_ff @(posedge clk)
+		begin
+			if (done) begin // use done as a reset signal
+					idx <= 0;
+			end else if (load) begin
+					idx <= idx + 1'b1;
+			end
+		end
+		
+	 logic        [2*width-1:0] untrucated_mult;
+	 logic signed [width-1:0]   hann_coeff;
+	 hann_lut #(width, N_2) (clk, idx, hann_coeff);
+    assign untruncated_mult = hann_coeff * rd;
+	 assign val_in = hann ? untruncated_mult[2*width-2:width-1] : rd;
+		
+endmodule // fft_load
+
+module bit_reverse 
+	#(parameter N_2=5)
+	 (input logic [N_2-1:0] in,
+	  output logic [N_2-1:0] out);
+	  
+	  genvar i;
+	  generate
+		for(i=0; i<N_2; i=i+1) begin : BIT_REVERSE
+			assign out[i] = in[N_2-i-1];
+		end	
+	  endgenerate
+	  
+endmodule // bit_reverse
 
 // UNTESTED, TODO: TEST
 module fft_agu
