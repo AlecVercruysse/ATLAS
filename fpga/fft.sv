@@ -47,7 +47,7 @@ module fft
 		end
 	
    fft_agu #(width, N_2) agu(clk, enable, done, rdsel, we0_agu, adr0a_agu, adr0b_agu, we1, adr1a_agu, adr1b, twiddleadr);
-   fft_twiddleROM #(width, N_2) twiddlerom(clk, twiddleadr, twiddle);
+   fft_twiddleROM #(width, N_2) twiddlerom(twiddleadr, twiddle);
 
    twoport_RAM #(width, N_2) ram0(clk, we0, adr0a, adr0b, writea, writeb, rd0a, rd0b);
    twoport_RAM #(width, N_2) ram1(clk, we1, adr1a, adr1b,   aout,   bout, rd1a, rd1b);
@@ -186,8 +186,7 @@ endmodule // calcAddr
 
 module fft_twiddleROM
   #(parameter width=16, N_2=5)
-   (input logic  clk,
-    input logic  [N_2-2:0] twiddleadr, // 0 - 1023 = 10 bits
+   (input logic  [N_2-2:0] twiddleadr, // 0 - 1023 = 10 bits
     output logic [2*width-1:0] twiddle);
 
    // twiddle table pseudocode: w[k] = w[k-1] * w,
@@ -197,9 +196,10 @@ module fft_twiddleROM
    logic [2*width-1:0]         vectors [0:2**(N_2-1)-1];
    initial $readmemb("rom/twiddle.vectors", vectors);
 
-   always @(posedge clk)
-     twiddle <= vectors[twiddleadr];
-
+   //always @(posedge clk)
+   //  twiddle <= vectors[twiddleadr];
+	assign twiddle = vectors[twiddleadr];
+	
 endmodule // fft_twiddleROM
 
 
