@@ -110,15 +110,15 @@ module fft_agu
   #(parameter width=16, N_2=5)
    (input logic  clk,
     input logic  start,
-    output logic done, // √
-    output logic rdsel, // √
-    output logic we0, // v
-    output logic [N_2-1:0] adr0a, // √
-    output logic [N_2-1:0] adr0b, // √
-    output logic we1, // √
-    output logic [N_2-1:0] adr1a, // √
-    output logic [N_2-1:0] adr1b, // √
-    output logic [N_2-2:0] twiddleadr); // √
+    output logic done,
+    output logic rdsel,
+    output logic we0,
+    output logic [N_2-1:0] adr0a,
+    output logic [N_2-1:0] adr0b,
+    output logic we1,
+    output logic [N_2-1:0] adr1a,
+    output logic [N_2-1:0] adr1b,
+    output logic [N_2-2:0] twiddleadr);
 
     logic [N_2-1:0] fftLevel = 0;
     logic [N_2-1:0] flyInd = 0;
