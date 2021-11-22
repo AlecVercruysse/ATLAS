@@ -3,7 +3,7 @@
 // the width is the bit width (e.g. if width=16, 16 real and 16 im bits).
 // the input should be width-5 to account for bit growth.
 module fft
-  #(parameter width=16, N_2=5) // N_2 is log base 2 of N (points)
+  #(parameter width=16, N_2=5, hann=0) // N_2 is log base 2 of N (points)
    (input logic  clk,
     input logic  start,
 	 input logic  load,
@@ -11,21 +11,40 @@ module fft
     output logic [2*width-1:0] wd, // complex write data out
     output logic done);
 
-	logic              enable;  // for AGU operation (TODO: rename AGU input to enable)
+	logic              enable;  // for AGU operation (TODO: rename AGU module input to enable)
    logic              rdsel;   // read from RAM0 or RAM1
    logic              we0, we1; // RAMx write enable
-   logic [N_2 - 1:0]  adr0a_agu, adr0b_agu, adr0a, adr0b, adr0a_load, adr0b_load, adr1a, adr1b;
+   logic [N_2 - 1:0]  adr0a_agu, adr0b_agu, adr0a, adr0b, adr0a_load, adr0b_load, adr0a_load_agu, adr1a, adr1b, adr1a_agu;
    logic [N_2 - 2:0]  twiddleadr; // twiddle ROM adr
    logic [2*width-1:0] twiddle, a, b, writea, writeb, aout, bout, rd0a, rd0b, rd1a, rd1b, val_in;
 
    // LOAD LOGIC
-	fft_load #(width, N_2) loader(clk, load, done, rd, adr0a_load, adr0b_load, val_in);
-	assign adr0a = load ? adr0a_load : adr0a_agu;
+	fft_load #(width, N_2, hann) loader(clk, load, done, rd, adr0a_load, adr0b_load, val_in);
+	assign adr0a_load_agu = load ? adr0a_load : adr0a_agu;
 	assign adr0b = load ? adr0b_load : adr0b_agu;
-	assign writea = load ? val_in   : aout;
-	assign writeb = load ? rd0b : bout; // we don't want to write into b, so have it write whatever its reading
+	assign writea = load ? val_in : aout;
+	assign writeb = load ? rd0b   : bout; // we don't want to write into b, so have it write whatever its reading
 	
-   fft_agu #(width, N_2) agu(clk, enable, done, rdsel, we0, adr0a_agu, adr0b_agu, we1, adr1a, adr1b, twiddleadr);
+	// AGU ENABLE LOGIC
+	always_ff @(posedge clk)
+		begin	
+			if      (start) enable <= 1;
+			else if (done)  enable <= 0;
+		end
+	
+	// OUTPUT LOGIC
+	logic [N_2-1:0] out_idx;
+	assign wd    = N_2[0] ? rd1a : rd1b; // ram holding results depends on even-ness of log2(N-points)s?
+	assign adr0a = done ? out_idx : adr0a_load_agu;
+	assign adr1a = done ? out_idx : adr1a_agu;
+
+	always_ff @(posedge clk)
+		begin
+			if      (start) out_idx <= 0;    // use `start` as reset
+			else if (done)  out_idx <= out_idx + 1'b1; 
+		end
+	
+   fft_agu #(width, N_2) agu(clk, enable, done, rdsel, we0, adr0a_agu, adr0b_agu, we1, adr1a_agu, adr1b, twiddleadr);
    fft_twiddleROM #(width, N_2) twiddlerom(clk, twiddleadr, twiddle);
 
    twoport_RAM #(width, N_2) ram0(clk, we0, adr0a, adr0b, writea, writeb, rd0a, rd0b);

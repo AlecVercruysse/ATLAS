@@ -113,3 +113,7 @@ set_global_assignment -name EDA_TEST_BENCH_FILE testbenches.sv -section_id i2s_t
 set_global_assignment -name EDA_TEST_BENCH_FILE testbenches.sv -section_id bgu_testbench
 set_global_assignment -name EDA_TEST_BENCH_FILE testbenches.sv -section_id hannrom_testbench
 set_global_assignment -name EDA_TEST_BENCH_FILE testbenches.sv -section_id ram_testbench
+set_global_assignment -name EDA_TEST_BENCH_NAME slade_fft_testbench -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id slade_fft_testbench
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME slade_fft_testbench -section_id slade_fft_testbench
+set_global_assignment -name EDA_TEST_BENCH_FILE testbenches.sv -section_id slade_fft_testbench

@@ -50,7 +50,7 @@ module hannrom_testbench #(parameter width=16, N_2=5)();
 
 endmodule // twiddlerom_testbench
 
-// untested!! (new bgu implementation)
+// tested
 module bgu_testbench #(parameter width=16)();
    logic clk;
    logic [2*width-1:0] twiddle;
@@ -152,4 +152,54 @@ module agu_testbench #(parameter width=16, N_2=5)();
 		start = 1; #10;
 	end
 
-endmodule // ram_testbench
+endmodule // agu_testbench
+
+module slade_fft_testbench();
+	logic clk;
+	logic start, load, done;
+	logic [width-1:0] rd;
+	logic [2*width-1:0] wd;
+	logic [31:0] idx, out_idx;
+	
+	logic [width-1:0]   input_data [0:2**N_2-1];
+	logic [2*width-1:0] expected_out [0:2**N_2-1];
+	
+	fft #(16, 5, 0) dut(clk, start, load, rd, wd, done); // no hann!!
+	
+	// clk
+	always
+		begin
+			clk = 1; #5; clk=0; #5;
+		end
+		
+	// start of test
+	initial
+		begin
+			$readmemh("rom/slade_test_in.memh", input_data);
+			$readmemh("rom/slade_test_out.memh", expected_out);
+			idx=0; start=0; load=0;
+		end	
+		
+	always @(posedge clk)
+		idx <= idx + 1;
+		
+	always @(posedge clk)
+		if (start) out_idx <= 0;
+		else if (done) out_idx <= out_idx + 1;
+		
+	// load logic
+	assign load = idx < 32;
+	assign rd = load ? input_data[idx[4:0]] : 0;
+	
+	always @(posedge clk)
+		if (done) begin
+		   if (out_idx <= 32) begin
+				if (wd !== expected_data[out_idx[4:0]]) begin
+				$display("Error: expected %b @ out_idx %d (got %b)", expected_data[out_idx[4:0]], out_idx, wd);
+				end
+			end else begin 
+				$display("Slade FFT test complete.");
+				$finish;
+			end
+		end
+endmodule // fft_testbench
