@@ -14,22 +14,22 @@ module fft
 	logic              enable;  // for AGU operation (TODO: rename AGU input to enable)
    logic              rdsel;   // read from RAM0 or RAM1
    logic              we0, we1; // RAMx write enable
-   logic [N_2 - 1:0]  adr0a_agu, adr0b_agu, adr0a_load, adr0b_load, adr1a, adr1b;
+   logic [N_2 - 1:0]  adr0a_agu, adr0b_agu, adr0a, adr0b, adr0a_load, adr0b_load, adr1a, adr1b;
    logic [N_2 - 2:0]  twiddleadr; // twiddle ROM adr
    logic [2*width-1:0] twiddle, a, b, writea, writeb, aout, bout, rd0a, rd0b, rd1a, rd1b, val_in;
 
-   // TODO LOAD LOGIC!!
+   // LOAD LOGIC
 	fft_load #(width, N_2) loader(clk, load, done, rd, adr0a_load, adr0b_load, val_in);
 	assign adr0a = load ? adr0a_load : adr0a_agu;
 	assign adr0b = load ? adr0b_load : adr0b_agu;
 	assign writea = load ? val_in   : aout;
 	assign writeb = load ? rd0b : bout; // we don't want to write into b, so have it write whatever its reading
 	
-   fft_agu #(width, N_2) agu(clk, enable, done, rdsel, we0, adr0a, adr0b, we1, adr1a, adr1b, twiddleadr);
+   fft_agu #(width, N_2) agu(clk, enable, done, rdsel, we0, adr0a_agu, adr0b_agu, we1, adr1a, adr1b, twiddleadr);
    fft_twiddleROM #(width, N_2) twiddlerom(clk, twiddleadr, twiddle);
 
-   twoport_RAM #(width, N_2) ram0(clk, we0, adr0a, adr0b, aout, bout, rd0a, rd0b);
-   twoport_RAM #(width, N_2) ram1(clk, we1, adr1a, adr1b, aout, bout, rd1a, rd1b);
+   twoport_RAM #(width, N_2) ram0(clk, we0, adr0a, adr0b, writea, writeb, rd0a, rd0b);
+   twoport_RAM #(width, N_2) ram1(clk, we1, adr1a, adr1b,   aout,   bout, rd1a, rd1b);
    assign a = rdsel ? rd1a : rd0a;
    assign b = rdsel ? rd1b : rd0b;
 
@@ -43,9 +43,9 @@ module fft_load
 	 input logic load,
 	 input logic done, // used as a reset
 	 input logic [width-1:0] rd,
-	 input logic [N_2-1:0] adr0a_load,
-	 input logic [N_2-1:0] adr0b_load,
-	 input logic [2*width-1:0] val_in,)
+	 output logic [N_2-1:0] adr0a_load,
+	 output logic [N_2-1:0] adr0b_load,
+	 output logic [2*width-1:0] val_in);
 	 
 	 logic [N_2-1:0]       idx;
 	 
@@ -64,9 +64,9 @@ module fft_load
 			end
 		end
 		
-	 logic        [2*width-1:0] untrucated_mult;
+	 logic        [2*width-1:0] untruncated_mult;
 	 logic signed [width-1:0]   hann_coeff;
-	 hann_lut #(width, N_2) (clk, idx, hann_coeff);
+	 hann_lut #(width, N_2) hann_rom(clk, idx, hann_coeff);
     assign untruncated_mult = hann_coeff * rd;
 	 assign val_in = hann ? untruncated_mult[2*width-2:width-1] : rd;
 		
