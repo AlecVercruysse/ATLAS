@@ -31,7 +31,7 @@ module fft
 	always_ff @(posedge clk)
 		begin	
 			if      (start) enable <= 1;
-			else if (done)  enable <= 0;
+			else if (done || reset)  enable <= 0;
 		end
 	
 	// OUTPUT LOGIC
@@ -69,6 +69,7 @@ module fft_load
 	 output logic [2*width-1:0] val_in);
 	 
 	 logic [N_2-1:0]       idx;
+	 logic [width-1:0]     val_in_re;
 	 
 	 bit_reverse #(N_2) reverseaddr(idx, adr0a_load);
 	 assign adr0b_load = adr0a_load; // + 1'b1; // just don't be adr0a
@@ -89,8 +90,9 @@ module fft_load
 	 logic signed [width-1:0]   hann_coeff;
 	 hann_lut #(width, N_2) hann_rom(clk, idx, hann_coeff);
     assign untruncated_mult = hann_coeff * rd;
-	 assign val_in = hann ? untruncated_mult[2*width-2:width-1] : rd;
-		
+	 assign val_in_re = hann ? untruncated_mult[2*width-2:width-1] : rd;
+	 assign val_in    = {val_in_re, 16'b0}; // imaginary is all zeros!
+	 
 endmodule // fft_load
 
 module bit_reverse 
@@ -151,8 +153,8 @@ module fft_agu
     assign adr1b = adrB;
 
     // flips every cycle
-    assign we0 = fftLevel[0];
-    assign we1 = ~fftLevel[0];
+    assign we0 = fftLevel[0] & start;
+    assign we1 = ~fftLevel[0] & start;
 
     // flips every cycle, TODO: should this start on 0? Which RAM do we preload?
     assign rdsel = fftLevel[0];
