@@ -1,3 +1,5 @@
+
+
 // the width is the bit width (e.g. if width=16, 16 real and 16 im bits).
 // the input should be width-5 to account for bit growth.
 module fft
@@ -37,33 +39,33 @@ module fft_agu
     output logic rdsel, // √
     output logic we0, // v
     output logic [N_2-1:0] adr0a, // √
-    output logic [N_2-1:0] ard0b, // √
+    output logic [N_2-1:0] adr0b, // √
     output logic we1, // √
     output logic [N_2-1:0] adr1a, // √
     output logic [N_2-1:0] adr1b, // √
     output logic [N_2-2:0] twiddleadr); // √
 
-    logic [31:0] fftLevel = 0;
-    logic [31:0] flyInd = 0;
+    logic [N_2-1:0] fftLevel = 0;
+    logic [N_2-1:0] flyInd = 0;
 
     logic [N_2-1:0] adrA;
     logic [N_2-1:0] adrB;
 
     always_ff @(posedge clk) begin
       // Increment fftLevel and flyInd
-      if(start == 1) begin
-        if(flyInd < width) begin // TODO: When does flyIND increase? When > width?
-          flyInd <= flyInd + 1;
+      if(start === 1 & ~done) begin
+        if(flyInd < 2**(N_2 - 1)) begin
+          flyInd <= flyInd + 1'd1;
         end else begin
           flyInd <= 0;
-          fftLevel <= fftLevel + 1;
+          fftLevel <= fftLevel + 1'd1;
         end
       end
     end
 
     // sets done when we are finished with the fft
-    assign done = (fftLevel == (N_2 + 1))
-    adrCalc #(width, N_2) calcAddr(fftLevel, flyInd, adrA, adrB, twiddleAdr);
+    assign done = (fftLevel == (N_2 + 1));
+    calcAddr #(width, N_2) adrCalc(fftLevel, flyInd, adrA, adrB, twiddleadr);
 
     assign adr0a = adrA;
     assign adr1a = adrA;
@@ -83,19 +85,21 @@ endmodule // fft_agu
 // UNTESTED, TODO: TEST
 module calcAddr
  #(parameter width=16, N_2=5)
-  (input logic  [31:0]    fftLevel,
-   input logic  [31:0]    flyInd,
-   output logic [N_2-1:0] adrA
-   output logic [N_2-1:0] adrB
+  (input logic  [N_2-1:0]    fftLevel,
+   input logic  [N_2-1:0]    flyInd,
+   output logic [N_2-1:0] adrA,
+   output logic [N_2-1:0] adrB,
    output logic [N_2-2:0] twiddleadr);
 
-  logic [N_2-1:0] tempA = flyInd << 1;
-  logic [N_2-1:0] tempB = tempA + 32'd1;
+  logic [N_2-1:0] tempA;
+  logic [N_2-1:0] tempB;
 
   always_comb begin
-    adrA = ((tempA << fftLevel) | ((tempA >> (N_2 - fftLevel)) & 32'h1f;
-    adrB = ((tempB << fftLevel) | ((tempB >> (N_2 - fftLevel)) & 32'h1f;
-    twiddleadr = ((32'hfffffff0 >> fftLevel) & 32'hf) & flyInd;
+	 tempA = flyInd << 1'd1;
+	 tempB = flyInd +  1'd1;
+    adrA = ((tempA << fftLevel) | (tempA >> (N_2 - fftLevel))) & 32'hffffffff; // truncation seems ok here
+    adrB = ((tempB << fftLevel) | (tempB >> (N_2 - fftLevel))) & 32'hffffffff; // truncation seems ok here
+    twiddleadr = ((32'hfffffff0 >> fftLevel) & 32'hf) & flyInd; // truncation seems ok here
   end
 endmodule // calcAddr
 
@@ -187,12 +191,12 @@ module fft_butterfly
 
 
    // expand to re and im components
-   assign twiddle_re = twiddle[2*width-1:width];
-   assign twiddle_im = twiddle[width-1:0];
+   //assign twiddle_re = twiddle[2*width-1:width];
+   //assign twiddle_im = twiddle[width-1:0];
    assign a_re = a[2*width-1:width];
    assign a_im = a[width-1:0];
-   assign b_re = b[2*width-1:width];
-   assign b_im = b[width-1:0];
+   //assign b_re = b[2*width-1:width];
+   //assign b_im = b[width-1:0];
    assign aout = {aout_re, aout_im};
    assign bout = {bout_re, bout_im};
 
