@@ -110,7 +110,7 @@ module fft_agu
     always_ff @(posedge clk) begin
       // Increment fftLevel and flyInd
       if(start === 1 & ~done) begin
-        if(flyInd < 2**(N_2 - 1)) begin
+        if(flyInd < 2**(N_2 - 1) - 1) begin
           flyInd <= flyInd + 1'd1;
         end else begin
           flyInd <= 0;
@@ -120,7 +120,7 @@ module fft_agu
     end
 
     // sets done when we are finished with the fft
-    assign done = (fftLevel == (N_2 + 1));
+    assign done = (fftLevel == (N_2));
     calcAddr #(width, N_2) adrCalc(fftLevel, flyInd, adrA, adrB, twiddleadr);
 
     assign adr0a = adrA;
@@ -130,11 +130,11 @@ module fft_agu
     assign adr1b = adrB;
 
     // flips every cycle
-    assign we0 = flyInd[0];
-    assign we1 = ~flyInd[0];
+    assign we0 = fftLevel[0];
+    assign we1 = ~fftLevel[0];
 
     // flips every cycle, TODO: should this start on 0? Which RAM do we preload?
-    assign rdsel = flyInd[0];
+    assign rdsel = fftLevel[0];
 
 endmodule // fft_agu
 
@@ -151,11 +151,13 @@ module calcAddr
   logic [N_2-1:0] tempB;
 
   always_comb begin
-	 tempA = flyInd << 1'd1;
-	 tempB = flyInd +  1'd1;
-    adrA = ((tempA << fftLevel) | (tempA >> (N_2 - fftLevel))) & 32'hffffffff; // truncation seems ok here
-    adrB = ((tempB << fftLevel) | (tempB >> (N_2 - fftLevel))) & 32'hffffffff; // truncation seems ok here
-    twiddleadr = ((32'hfffffff0 >> fftLevel) & 32'hf) & flyInd; // truncation seems ok here
+	tempA = flyInd << 1'd1;
+	tempB = tempA +  1'd1;
+    	adrA = ((tempA << fftLevel) | (tempA >> (N_2 - fftLevel))) & 5'h1f;
+
+    	adrB = ((tempB << fftLevel) | (tempB >> (N_2 - fftLevel))) & 5'h1f;
+    	twiddleadr = ((32'hffff_fff0 >> fftLevel) & 32'hf) & flyInd;
+	//twiddleadr = (4'b1111 >> fftLevel) & flyInd[3:0]; //  TODO: parameterize
   end
 endmodule // calcAddr
 
