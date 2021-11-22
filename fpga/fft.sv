@@ -126,7 +126,7 @@ module fft_butterfly
     output logic [2*width-1:0] aout,
     output logic [2*width-1:0] bout);
 
-   logic signed [width-1:0]           twiddle_re, twiddle_im, a_re, a_im, b_re, b_im, aout_re, aout_im, bout_re, bout_im;
+   logic signed [width-1:0]           a_re, a_im, aout_re, aout_im, bout_re, bout_im;
    logic signed [width-1:0]           b_re_mult, b_im_mult;
 	logic        [2*width-1:0]         b_mult;
 

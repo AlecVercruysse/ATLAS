@@ -74,13 +74,15 @@ module bgu_testbench #(parameter width=16)();
       assert (aout===0 && bout===0) else $error("case 1 failed.");
      
       twiddle = {16'h7FFF, 16'b0}; #10; assert(aout===0 && bout===0) else $error("case 2 failed.");
-      b = {16'h7FFF, 16'b0}; #10; assert(aout==={16'h7FFF,16'b0} && bout==={16'h8001, 16'b0}) else $error("case 3 failed.");
+      b = {16'h7FFF, 16'b0}; #10; assert(aout==={16'h7FFE,16'b0} && bout==={16'h8002, 16'b0}) else $error("case 3 failed.");
       
       // real test case:
-      // real b*w out: 0xEE59 (-4519). im b*w out: 0x58C2 (22722).
+      // real b*w out: 0xEE59 (-4520). im b*w out: 0x58C2 (22722).
       // aout: 141 + j27382. bout:  9179 - j18062.
-      twiddle = {16'h471C, 16'h6A6C}; a={16'h1234, 16'h1234; b={16'h3FFF, 16'h3FFF}; #10;
-      assert(aout==={16'h008D, 16'h6AF6} && bout==={16'h23DB, 16'hB972}) else $error("case 4 failed!");
+      twiddle = {16'h471C, 16'h6A6C}; a={16'h1234, 16'h1234}; b={16'h3FFF, 16'h3FFF}; #10;
+      assert(aout==={16'h008C, 16'h6AF6} && bout==={16'h23DC, 16'hB972}) else $error("case 4 failed!");
+      
+      $display("BGU tests complete.");
    end
 
    fft_butterfly dut(twiddle, a, b, aout, bout);
