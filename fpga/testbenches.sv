@@ -136,7 +136,7 @@ module agu_testbench #(parameter width=16, N_2=5)();
    logic rdsel;
    logic we0;
    logic [N_2-1:0] adr0a;
-   logic [N_2-1:0] ard0b;
+   logic [N_2-1:0] adr0b;
    logic we1;
    logic [N_2-1:0] adr1a;
    logic [N_2-1:0] adr1b;
@@ -146,10 +146,10 @@ module agu_testbench #(parameter width=16, N_2=5)();
 
 	initial begin
     // init inputs and outputs to zero/default
-		start = 0; done = 0; rdsel = 0; we0 = 0; adr0a = 0; adr = 0; rda = 0; rdb = 0; #10;
+		start = 0; done = 0; rdsel = 0; we0 = 0; adr0a = 0; adr0b = 0; we1 = 0; adr1a = 0; adr1b = 0; twiddleadr = 0; #10;
 
     // init inputs to starting values.
 		start = 1; #10;
 	end
 
-endmodule // ram_testbench
+endmodule // agu_testbench
