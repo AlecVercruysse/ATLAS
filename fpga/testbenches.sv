@@ -157,12 +157,12 @@ endmodule // agu_testbench
 module slade_fft_testbench();
    logic clk;
    logic start, load, done, reset;
-   logic [15:0] rd;
-   logic [31:0] wd;
-   logic [31:0] idx, out_idx;
+   logic signed [15:0] rd, expected_re, expected_im, wd_re, wd_im;
+   logic [31:0]        wd;
+   logic [31:0]        idx, out_idx, expected;
    
-   logic [15:0] input_data [0:31];
-   logic [31:0] expected_out [0:31];
+   logic [15:0]        input_data [0:31];
+   logic [31:0]        expected_out [0:31];
    
    fft #(16, 5, 0) dut(clk, reset, start, load, rd, wd, done); // no hann!!
    
@@ -192,12 +192,17 @@ module slade_fft_testbench();
    assign load =  idx < 32;
    assign start = idx === 40;
    assign rd = load ? input_data[idx[4:0]] : 0;
+   assign expected = expected_out[out_idx[4:0]];
+   assign expected_re = expected[31:16];
+   assign expected_im = expected[15:0];
+   assign wd_re = wd[31:16];
+   assign wd_im = wd[15:0];
    
    always @(posedge clk)
      if (done) begin
-	if (out_idx <= 32) begin
-	   if (wd !== expected_out[out_idx[4:0]]) begin
-	      $display("Error: expected %b @ out_idx %d (got %b)", expected_out[out_idx[4:0]], out_idx, wd);
+	if (out_idx <= 31) begin
+	   if (wd !== expected) begin
+	      $display("Error @ out_idx %d: expected %b (got %b)    expected: %d+j%d, got %d+j%d", out_idx, expected, wd, expected_re, expected_im, wd_re, wd_im);
 	   end
 	end else begin 
 	   $display("Slade FFT test complete.");
