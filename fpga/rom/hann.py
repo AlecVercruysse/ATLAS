@@ -10,7 +10,6 @@ def int2bin(integer, digits):
     else:
         return bin(2**digits + integer)[2:]
 
-
 i2b = np.vectorize(int2bin)
 
 N = 32
@@ -22,4 +21,9 @@ hann = (hann * (2**(q-1) - 1)).astype('uint') # discretize
 with open("hann.vectors", 'w') as f:
     for i in range(len(hann)):
         f.write(int2bin(hann[i], q) + "\n")
+
+with open("../simulation/modelsim/rom/hann.vectors", 'w') as f:
+    for i in range(len(hann)):
+        f.write(int2bin(hann[i], q) + "\n")
+
         #f.write(f"{hann[i]:024b}"[-q:] + "\n")

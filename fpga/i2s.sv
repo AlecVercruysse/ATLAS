@@ -15,10 +15,10 @@ module final_fpga(input logic         clk,   // 12MHz MAX1000 clk    H6
 
    logic                              newsample;
    i2s pcm_in(clk, reset, din, bck, lrck, scki, left, right, newsample);
-	
-	logic start, done;
-	logic [31:0] rd, wd;
-	fft fft(clk, start, rd, wd, done);
+   
+   logic                              start, done;
+   logic [31:0]                       rd, wd;
+   fft fft(clk, start, rd, wd, done);
    
 endmodule // final_fpga
 
@@ -56,7 +56,7 @@ module i2s(input logic         clk,
    // sampling occurs on bit 1 and bit 24, NOT bit 0!
    logic [4:0]                 bit_state;
    assign bit_state = prescaler[6:2];
-                     
+   
    // shift register enable logic
    logic                       shift_en;
    assign shift_en = ((bit_state >= 1) && (bit_state <= 24) && !reset);

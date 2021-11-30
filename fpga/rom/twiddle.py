@@ -40,3 +40,8 @@ w_im = i2b(w_im, q)
 with open("twiddle.vectors", 'w') as f:
     for i in range(len(w_re)):
         f.write(w_re[i] + "" + w_im[i] + "\n")
+
+with open("../simulation/modelsim/rom/twiddle.vectors", 'w') as f:
+    for i in range(len(w_re)):
+        f.write(w_re[i] + "" + w_im[i] + "\n")
+

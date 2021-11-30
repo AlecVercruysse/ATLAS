@@ -122,86 +122,86 @@ endmodule // ram_testbench
 // Unsure of exactly what the correct waveforms will look like
 module agu_testbench #(parameter width=16, N_2=5)();
 
-  // inputs
-	logic clk;
-	initial
+   // inputs
+   logic clk;
+   initial
      forever begin
         clk = 1'b0; #5;
         clk = 1'b1; #5;
-   end
+     end
    logic  start;
 
    // outputs
-   logic done;
-   logic rdsel;
-   logic we0;
+   logic  done;
+   logic  rdsel;
+   logic  we0;
    logic [N_2-1:0] adr0a;
    logic [N_2-1:0] adr0b;
-   logic we1;
+   logic           we1;
    logic [N_2-1:0] adr1a;
    logic [N_2-1:0] adr1b;
    logic [N_2-2:0] twiddleadr;
 
-	fft_agu #(width, N_2) agu(clk, start, done, rdsel, we0, adr0a, adr0b, we1, adr1a, adr1b, twiddleadr);
+   fft_agu #(width, N_2) agu(clk, start, done, rdsel, we0, adr0a, adr0b, we1, adr1a, adr1b, twiddleadr);
 
-	initial begin
-    // init inputs and outputs to zero/default
-		start = 0; done = 0; rdsel = 0; we0 = 0; adr0a = 0; adr0b = 0; we1 = 0; adr1a = 0; adr1b = 0; twiddleadr = 0; #10;
+   initial begin
+      // init inputs and outputs to zero/default
+      start = 0; done = 0; rdsel = 0; we0 = 0; adr0a = 0; adr0b = 0; we1 = 0; adr1a = 0; adr1b = 0; twiddleadr = 0; #10;
 
-    // init inputs to starting values.
-		start = 1; #10;
-	end
+      // init inputs to starting values.
+      start = 1; #10;
+   end
 
 endmodule // agu_testbench
 
 module slade_fft_testbench();
-	logic clk;
-	logic start, load, done, reset;
-	logic [15:0] rd;
-	logic [31:0] wd;
-	logic [31:0] idx, out_idx;
-	
-	logic [15:0]   input_data [0:31];
-	logic [31:0] expected_out [0:31];
-	
-	fft #(16, 5, 0) dut(clk, reset, start, load, rd, wd, done); // no hann!!
-		
-	// clk
-	always
-		begin
-			clk = 1; #5; clk=0; #5;
-		end
-		
-	// start of test
-	initial
-		begin
-			$readmemh("rom/slade_test_in.memh", input_data);
-			$readmemh("rom/slade_test_out.memh", expected_out);
-			idx=0; reset=1; #40; reset=0;
-		end	
-		
-	always @(posedge clk)
-		if (~reset) idx <= idx + 1;
-		else idx <= idx;
-		
-	always @(posedge clk)
-		if (load) out_idx <= 0;
-		else if (done) out_idx <= out_idx + 1;
-		
-	// load/start logic
-	assign load =  idx < 32;
-	assign start = idx === 40;
-	assign rd = load ? input_data[idx[4:0]] : 0;
-	
-	always @(posedge clk)
-		if (done) begin
-		   if (out_idx <= 32) begin
-				if (wd !== expected_out[out_idx[4:0]]) begin
-				$display("Error: expected %b @ out_idx %d (got %b)", expected_out[out_idx[4:0]], out_idx, wd);
-				end
-			end else begin 
-				$display("Slade FFT test complete.");
-				$finish;
-			end
-		end
+   logic clk;
+   logic start, load, done, reset;
+   logic [15:0] rd;
+   logic [31:0] wd;
+   logic [31:0] idx, out_idx;
+   
+   logic [15:0] input_data [0:31];
+   logic [31:0] expected_out [0:31];
+   
+   fft #(16, 5, 0) dut(clk, reset, start, load, rd, wd, done); // no hann!!
+   
+   // clk
+   always
+     begin
+	clk = 1; #5; clk=0; #5;
+     end
+   
+   // start of test
+   initial
+     begin
+	$readmemh("rom/slade_test_in.memh", input_data);
+	$readmemh("rom/slade_test_out.memh", expected_out);
+	idx=0; reset=1; #40; reset=0;
+     end	
+   
+   always @(posedge clk)
+     if (~reset) idx <= idx + 1;
+     else idx <= idx;
+   
+   always @(posedge clk)
+     if (load) out_idx <= 0;
+     else if (done) out_idx <= out_idx + 1;
+   
+   // load/start logic
+   assign load =  idx < 32;
+   assign start = idx === 40;
+   assign rd = load ? input_data[idx[4:0]] : 0;
+   
+   always @(posedge clk)
+     if (done) begin
+	if (out_idx <= 32) begin
+	   if (wd !== expected_out[out_idx[4:0]]) begin
+	      $display("Error: expected %b @ out_idx %d (got %b)", expected_out[out_idx[4:0]], out_idx, wd);
+	   end
+	end else begin 
+	   $display("Slade FFT test complete.");
+	   $finish;
+	end
+     end
 endmodule // fft_testbench
