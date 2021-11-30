@@ -163,6 +163,9 @@ module slade_fft_testbench();
    
    logic [15:0]        input_data [0:31];
    logic [31:0]        expected_out [0:31];
+
+   // https://stackoverflow.com/questions/25607124/test-bench-for-writing-verilog-output-to-a-text-file
+   integer             f; // file pointer?
    
    fft #(16, 5, 0) dut(clk, reset, start, load, rd, wd, done); // no hann!!
    
@@ -177,6 +180,7 @@ module slade_fft_testbench();
      begin
 	$readmemh("rom/slade_test_in.memh", input_data);
 	$readmemh("rom/slade_test_out.memh", expected_out);
+        f = $fopen("rom/fft_test_out.memh", "w"); // write computed vals!
 	idx=0; reset=1; #40; reset=0;
      end	
    
@@ -201,11 +205,13 @@ module slade_fft_testbench();
    always @(posedge clk)
      if (done) begin
 	if (out_idx <= 31) begin
+           $fwrite(f, "%h\n", wd);
 	   if (wd !== expected) begin
 	      $display("Error @ out_idx %d: expected %b (got %b)    expected: %d+j%d, got %d+j%d", out_idx, expected, wd, expected_re, expected_im, wd_re, wd_im);
 	   end
-	end else begin 
+	end else begin
 	   $display("Slade FFT test complete.");
+           $fclose(f);
 	   $finish;
 	end
      end

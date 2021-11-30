@@ -33,7 +33,7 @@ w_re = (w_re * (2**(q-1) - 1)).astype('int')
 w_re = i2b(w_re, q)
 
 # w_im = np.imag(w)
-w_im = np.sin(2*np.pi*n/N)
+w_im = -np.sin(2*np.pi*n/N)
 w_im = (w_im * (2**(q-1) - 1)).astype('int')
 w_im = i2b(w_im, q)
 
