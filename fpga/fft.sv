@@ -4,7 +4,7 @@
 // the input should be width-5 to account for bit growth.
 module fft
   #(parameter width=16, N_2=5, hann=0) // N_2 is log base 2 of N (points)
-   (input logic  clk,
+   (input logic                clk,
     input logic                reset,
     input logic                start,
     input logic                load,
@@ -42,11 +42,11 @@ module fft
 
    always_ff @(posedge clk)
      begin
-	if      (reset) out_idx <= 0;    // use `start` as reset
+	if      (reset) out_idx <= 0;
 	else if (done)  out_idx <= out_idx + 1'b1; 
      end
    
-   fft_agu #(width, N_2) agu(clk, enable, done, rdsel, we0_agu, adr0a_agu, adr0b_agu, we1, adr1a_agu, adr1b, twiddleadr);
+   fft_agu #(width, N_2) agu(clk, enable, reset, done, rdsel, we0_agu, adr0a_agu, adr0b_agu, we1, adr1a_agu, adr1b, twiddleadr);
    fft_twiddleROM #(width, N_2) twiddlerom(twiddleadr, twiddle);
 
    twoport_RAM #(width, N_2) ram0(clk, we0, adr0a, adr0b, writea, writeb, rd0a, rd0b);
@@ -112,8 +112,9 @@ endmodule // bit_reverse
 // UNTESTED, TODO: TEST
 module fft_agu
   #(parameter width=16, N_2=5)
-   (input logic  clk,
-    input logic            start,
+   (input logic            clk,
+    input logic            enable,
+    input logic            reset,
     output logic           done,
     output logic           rdsel,
     output logic           we0,
@@ -131,8 +132,12 @@ module fft_agu
    logic [N_2-1:0]         adrB;
 
    always_ff @(posedge clk) begin
+      if (reset) begin
+         fftLevel <= 0;
+         flyInd <= 0;
+      end
       // Increment fftLevel and flyInd
-      if(start === 1 & ~done) begin
+      else if(enable === 1 & ~done) begin
          if(flyInd < 2**(N_2 - 1) - 1) begin
             flyInd <= flyInd + 1'd1;
          end else begin
@@ -153,8 +158,8 @@ module fft_agu
    assign adr1b = adrB;
 
    // flips every cycle
-   assign we0 = fftLevel[0] & start;
-   assign we1 = ~fftLevel[0] & start;
+   assign we0 = fftLevel[0] & enable;
+   assign we1 = ~fftLevel[0] & enable;
 
    // flips every cycle, TODO: should this start on 0? Which RAM do we preload?
    assign rdsel = fftLevel[0];

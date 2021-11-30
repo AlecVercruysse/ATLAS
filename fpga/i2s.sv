@@ -5,22 +5,83 @@ module final_fpga(input logic         clk,   // 12MHz MAX1000 clk    H6
                   output logic        lrck, // left/right clk,       PA6_J1
                   output logic        scki, // system clock,         PA5_H4
                   output logic        fmt, //  FMT,                  PA8_J10
-                  output logic [1:0]  md, //   MD1 & MD0,            PC7_H13, PA9_H10
-                  output logic [23:0] left, 
-                  output logic [23:0] right
+                  output logic [1:0]  md //   MD1 & MD0,            PC7_H13, PA9_H10
                   );
 
    assign md  = 2'b00; // see PCM1808 table 2 (slave mode)
    assign fmt = 0;     // see PCM1808 table 3 (i2s mode)
 
    logic                              newsample;
+   logic [23:0]                       left, right;
    i2s pcm_in(clk, reset, din, bck, lrck, scki, left, right, newsample);
    
-   logic                              start, done;
-   logic [31:0]                       rd, wd;
-   fft fft(clk, start, rd, wd, done);
-   
+   logic                              fft_start, fft_done, i2s_load, fft_load, fft_reset, fft_creset, fft_write;
+   logic [31:0]                       fft_wd;
+   logic [15:0]                       fft_rd;
+   logic [5:0]                        sample_ctr;
+                       
+   assign fft_reset = reset | fft_creset;
+   assign fft_rd    = left[15:0];
+   fft fft(clk, fft_reset, fft_start, fft_load, fft_rd, fft_wd, fft_done);
+   fft_control i2s_fft_glue(clk, reset, newsample, fft_done, fft_start, fft_load, fft_creset, fft_write, sample_ctr);
+
+   logic [31:0]                       spectrum_result [0:31];
+   always_ff @(posedge clk) begin
+      if (fft_write) spectrum_result[sample_ctr] <= fft_wd;
+   end
+
+   //logic [15:0]                       input_data      [0:31];
+   //always_ff @(posedge clk) begin
+   //   if (i2s_load) input_data[sample_ctr] <= left;
+   //end
+
 endmodule // final_fpga
+
+typedef enum logic [3:0] {LOADING, STARTING, WAITING, WRITING, RESETTING, ERROR} statetype;
+module fft_control(input logic clk,
+               input logic        reset,
+               input logic        newsample,
+               input logic        fft_done,
+               output logic       fft_start,
+               output logic       fft_load,
+               output logic       fft_reset,
+               output logic       fft_write,
+               output logic [5:0] sample_ctr);
+
+   statetype                   state, nextstate;
+   
+   always_ff @(posedge clk) begin
+      if      (reset || (state == RESETTING))     sample_ctr <= 0;
+      else if ((newsample && (state == LOADING)) || (state == WRITING || nextstate == WRITING)) sample_ctr <= sample_ctr + 1'b1;
+      else if (state == WAITING) sample_ctr <= 0; // this case needs to be checked after the previous
+                                                  // in case state is waiting but nextstate is writing.
+   end
+
+   always_ff @(posedge clk) begin
+      if (reset) state <= LOADING;
+      else state <= nextstate;
+   end
+
+   always_comb begin
+      case (state)
+        LOADING  : if (sample_ctr == 32)    nextstate = STARTING;
+                   else                     nextstate = LOADING;
+        STARTING :                          nextstate = WAITING;
+        WAITING  : if (fft_done)            nextstate = WRITING;
+                   else                     nextstate = WAITING;
+        WRITING  : if (sample_ctr == 32)    nextstate = RESETTING;
+                   else                     nextstate = WRITING;
+        RESETTING : nextstate = LOADING;
+        default  : nextstate = ERROR; // debug
+      endcase // case (state)
+   end
+
+   assign fft_load = (state == LOADING) & newsample;
+   assign fft_start = (state == STARTING);
+   assign fft_reset = (state == RESETTING);
+   assign fft_write = (state == WRITING || nextstate == WRITING);
+   
+endmodule // control
 
 module i2s(input logic         clk,
            input logic         reset,
@@ -30,7 +91,7 @@ module i2s(input logic         clk,
            output logic        scki, // PCM1808 system clock, PA5_H4
            output logic [23:0] left, 
            output logic [23:0] right,
-           output logic        newsample);
+           output logic        newsample_valid);
 
    /////////////////// clock ////////////////////////////////////
   
@@ -80,7 +141,9 @@ module i2s(input logic         clk,
    // load shift regs into output regs.
    // update both regs at once, once every fs.
    // this way, left and right will always contain a valid sample.
+   logic newsample;
    assign newsample = (bit_state == 25 && lrck && prescaler[1:0] == 0); // once every cycle
+   assign newsample_valid = (bit_state == 26 && lrck && prescaler[1:0] == 0); // once we can sample it!
    always_ff @(posedge clk)
      begin
         if (reset)

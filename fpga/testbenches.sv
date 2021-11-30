@@ -1,6 +1,6 @@
 module i2s_testbench();
    logic clk, reset, din, bck, lrck, scki;
-   logic [23:0] left, right;
+   logic [24:0] left, right; // 23 + 1 msb pad
    logic [8:0]  i;
 
    initial
@@ -194,7 +194,7 @@ module slade_fft_testbench();
    
    // load/start logic
    assign load =  idx < 32;
-   assign start = idx === 40;
+   assign start = idx === 32;
    assign rd = load ? input_data[idx[4:0]] : 0;
    assign expected = expected_out[out_idx[4:0]];
    assign expected_re = expected[31:16];
@@ -212,7 +212,46 @@ module slade_fft_testbench();
 	end else begin
 	   $display("Slade FFT test complete.");
            $fclose(f);
-	   $finish;
+	   //$finish;
 	end
      end
 endmodule // fft_testbench
+
+module toplevel_testbench();
+   logic clk, reset, din, bck, lrck, scki, fmt;
+   logic [1:0] md;
+   
+   logic [63:0] idx;
+   logic [31:0] sample_idx, bck_idx;
+   logic [24:0] input_sample;
+   logic [15:0] input_data [0:31];
+   
+   // clk
+   always
+     begin
+	clk = 1; #5; clk=0; #5;
+     end
+   
+   always_ff @(posedge clk)
+     if (~reset) idx <= idx + 1;
+     else idx <= idx;
+
+   initial begin
+      $readmemh("rom/slade_test_in.memh", input_data);
+      sample_idx = 0;
+      reset = 1; #100; reset = 0;
+   end
+
+   // feed in samples!
+   always @(negedge lrck) begin
+      input_sample <= {9'b0, input_data[sample_idx]};
+      sample_idx <= sample_idx + 1;
+   end
+   always @(negedge bck) begin
+      input_sample <= {input_sample[23:0], 1'b0}; // sketchy: 25 bits wide to account for first non-sampling bck.
+   end
+   assign din = lrck ? 0 : input_sample[24];
+   
+   final_fpga dut(clk, reset, din, bck, lrck, scki, fmt, md);
+   
+endmodule // toplevel_testbench
