@@ -16,6 +16,7 @@ _info
 _vmake
 *.wlf
 *.sft
+*.svo
 # ----------------------------------------------------------------------------
 # Working with Altera Quartus II (Q2) and do proper versioning is not that easy
 # but if you follow some rules it can be accomplished. :)

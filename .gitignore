@@ -2,3 +2,9 @@
 **/.DS_Store
 arduino_servo_test/
 *.mp3
+*.wav
+*.vscode
+*.*#
+**/output_files/
+fft_test_out.memh
+**/.ipynb_checkpoints
