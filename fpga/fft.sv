@@ -72,10 +72,7 @@ module fft_load
    logic [width-1:0]           val_in_re;
    
    bit_reverse #(N_2) reverseaddr(idx, adr0a_load);
-   assign adr0b_load = adr0a_load; // + 1'b1; // just don't be adr0a
-   // we don't want to write two values at once. So we just tie
-   // the write b to the read b, and generate an address that
-   // is not adr0a so it does not interfere.
+   assign adr0b_load = adr0a_load;
    
    always_ff @(posedge clk)
      begin

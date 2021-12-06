@@ -117,9 +117,8 @@ module ram_testbench #(parameter width=16, N_2=5)();
 
 endmodule // ram_testbench
 
-// verify that agu works. UNSTESTED.
-// Requires manually viewing waveforms
-// Unsure of exactly what the correct waveforms will look like
+
+// todo outdated (reset signal). tested working.
 module agu_testbench #(parameter width=16, N_2=5)();
 
    // inputs
@@ -218,13 +217,13 @@ module slade_fft_testbench();
 endmodule // fft_testbench
 
 module toplevel_testbench();
-   logic clk, reset, din, bck, lrck, scki, fmt;
+   logic clk, nreset, din, uscki, umosi, miso, bck, lrck, scki, fmt, uce;
    logic [1:0] md;
    
    logic [63:0] idx;
    logic [31:0] sample_idx, bck_idx;
    logic [24:0] input_sample;
-   logic [15:0] input_data [0:31];
+   logic [23:0] input_data [0:63];
    
    // clk
    always
@@ -233,18 +232,18 @@ module toplevel_testbench();
      end
    
    always_ff @(posedge clk)
-     if (~reset) idx <= idx + 1;
+     if (~nreset) idx <= idx + 1;
      else idx <= idx;
 
    initial begin
-      $readmemh("rom/slade_test_in.memh", input_data);
+      $readmemh("rom/toplevel_test_in.memh", input_data);
       sample_idx = 0;
-      reset = 1; #100; reset = 0;
+      nreset = 0; #100; nreset = 1;
    end
 
    // feed in samples!
    always @(negedge lrck) begin
-      input_sample <= {9'b0, input_data[sample_idx]};
+      input_sample <= {1'b0, input_data[sample_idx]};
       sample_idx <= sample_idx + 1;
    end
    always @(negedge bck) begin
@@ -252,6 +251,47 @@ module toplevel_testbench();
    end
    assign din = lrck ? 0 : input_sample[24];
    
-   final_fpga dut(clk, reset, din, bck, lrck, scki, fmt, md);
+   final_fpga dut(clk, nreset, din, uscki, umosi, uce, bck, lrck, scki, fmt, md, miso);
+
+   // spi stuff
+   always begin
+      uscki = 1; #30; uscki = 0; #30;
+   end
+
+   initial begin
+      umosi = 0;
+      uce=0;
+      #200000;
+      uce=1;
+   end
+
    
 endmodule // toplevel_testbench
+
+module spi_testbench();
+   logic clk, reset;
+   logic uscki, umosi, miso, uce;
+   logic [31:0] data;
+   logic [4:0]  adr;
+   logic [31:0] sreg_in;
+
+   assign data = {27'b0, adr}; // simple
+   
+   // clk
+   always
+     begin
+	clk = 1; #5; clk=0; #5;
+     end
+
+   always begin
+      uscki = 1; #30; uscki = 0; sreg_in = {sreg_in[30:0], miso}; #30;
+   end
+
+   initial begin
+      umosi = 0; uce = 0; reset=1; #100; reset=0; #100; uce=1;
+   end
+
+   spi_slave dut(clk, reset, uscki, umosi, uce, data, adr, miso);
+
+endmodule // spi_testbench
+

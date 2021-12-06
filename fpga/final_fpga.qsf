@@ -74,7 +74,6 @@ set_global_assignment -name EDA_TEST_BENCH_NAME i2s_testbench -section_id eda_si
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id i2s_testbench
 set_global_assignment -name EDA_TEST_BENCH_RUN_SIM_FOR "1000 ns" -section_id i2s_testbench
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME i2s_testbench -section_id i2s_testbench
-set_global_assignment -name SYSTEMVERILOG_FILE i2s.sv
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
@@ -86,8 +85,6 @@ set_location_assignment PIN_H4 -to scki
 set_location_assignment PIN_J10 -to fmt
 set_location_assignment PIN_H13 -to md[1]
 set_location_assignment PIN_H10 -to md[0]
-set_location_assignment PIN_K12 -to reset
-set_global_assignment -name SYSTEMVERILOG_FILE fft.sv
 set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
 
 set_global_assignment -name EDA_TEST_BENCH_NAME bgu_testbench -section_id eda_simulation
@@ -113,8 +110,21 @@ set_global_assignment -name EDA_TEST_BENCH_RUN_SIM_FOR "2000 ps" -section_id sla
 
 set_global_assignment -name EDA_TEST_BENCH_NAME toplevel_testbench -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id toplevel_testbench
-set_global_assignment -name EDA_TEST_BENCH_RUN_SIM_FOR "2000 ps" -section_id toplevel_testbench
+set_global_assignment -name EDA_TEST_BENCH_RUN_SIM_FOR "200000 ps" -section_id toplevel_testbench
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME toplevel_testbench -section_id toplevel_testbench
+set_global_assignment -name EDA_TEST_BENCH_NAME spi_testbench -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id spi_testbench
+set_global_assignment -name EDA_TEST_BENCH_RUN_SIM_FOR "300 ps" -section_id spi_testbench
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME spi_testbench -section_id spi_testbench
+set_global_assignment -name SYSTEMVERILOG_FILE spi.sv
+set_global_assignment -name SYSTEMVERILOG_FILE i2s.sv
+set_global_assignment -name SYSTEMVERILOG_FILE fft.sv
+set_location_assignment PIN_K11 -to miso
+set_location_assignment PIN_J13 -to umosi
+set_location_assignment PIN_J12 -to uscki
+set_location_assignment PIN_L12 -to uce
+set_instance_assignment -name IO_STANDARD "3.3 V SCHMITT TRIGGER" -to nreset
+set_location_assignment PIN_E6 -to nreset
 set_global_assignment -name EDA_TEST_BENCH_FILE testbenches.sv -section_id i2s_testbench
 set_global_assignment -name EDA_TEST_BENCH_FILE testbenches.sv -section_id bgu_testbench
 set_global_assignment -name EDA_TEST_BENCH_FILE testbenches.sv -section_id hannrom_testbench
@@ -122,4 +132,13 @@ set_global_assignment -name EDA_TEST_BENCH_FILE testbenches.sv -section_id ram_t
 set_global_assignment -name EDA_TEST_BENCH_FILE testbenches.sv -section_id slade_fft_testbench
 set_global_assignment -name EDA_TEST_BENCH_FILE testbenches.sv -section_id agu_testbench
 set_global_assignment -name EDA_TEST_BENCH_FILE testbenches.sv -section_id toplevel_testbench
+set_global_assignment -name EDA_TEST_BENCH_FILE testbenches.sv -section_id spi_testbench
+set_location_assignment PIN_A8 -to LEDs[0]
+set_location_assignment PIN_A9 -to LEDs[1]
+set_location_assignment PIN_A11 -to LEDs[2]
+set_location_assignment PIN_A10 -to LEDs[3]
+set_location_assignment PIN_B10 -to LEDs[4]
+set_location_assignment PIN_C9 -to LEDs[5]
+set_location_assignment PIN_C10 -to LEDs[6]
+set_location_assignment PIN_D8 -to LEDs[7]
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

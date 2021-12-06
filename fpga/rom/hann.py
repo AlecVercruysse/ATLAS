@@ -13,7 +13,7 @@ def int2bin(integer, digits):
 i2b = np.vectorize(int2bin)
 
 N = 32
-q = 11  # q - 5 (to account for bit growth during operation). TODO more needed?    # 24 max
+q = 16
 
 n = np.arange(N)
 hann = np.sin(np.pi*n/N)**2
