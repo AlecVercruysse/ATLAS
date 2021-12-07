@@ -106,7 +106,6 @@ module bit_reverse
    
 endmodule // bit_reverse
 
-// UNTESTED, TODO: TEST
 module fft_agu
   #(parameter width=16, N_2=5)
    (input logic            clk,
@@ -225,7 +224,7 @@ endmodule // hann_lut
 // explicit so that it is inferred.
 module mult
   #(parameter width=16)
-   (input logic signed [width-1:0]    a,
+   (input logic signed [width-1:0]  a,
     input logic signed [width-1:0]  b,
     output logic signed [width-1:0] out);
 
@@ -322,3 +321,17 @@ module twoport_RAM
    assign rdb = mem[adrb];
 
 endmodule // twoport_RAM
+
+module complex_mag
+  #(parameter width=16)
+   (input logic [2*width-1:0] a,
+    output logic [2*width-1:0] out);
+   
+   logic [2*width-1:0]         b;
+   logic signed [width-1:0]    b_re, b_im;
+   assign b_re = a[31:16]; assign b_im = -a[15:0];
+   assign b = {b_re, b_im};
+
+   complex_mult mag_mult(a, b, out);
+   
+endmodule // magnitude

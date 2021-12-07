@@ -1,30 +1,37 @@
-module final_fpga(input logic         clk,   // 12MHz MAX1000 clk, H6
+module final_fpga(input logic        clk,   //  12MHz MAX1000 clk, H6
                   input logic        nreset, // global reset,      E6 (right btn)
                   input logic        din, //    I2S DOUT,          PB6_G12
                   input logic        uscki, //  SPI clk,           PB3_J12
                   input logic        umosi, //  SPI MOSI,          PB5_J13
                   input logic        uce, //    SPI CE,            PA10_L12
+                  input logic [3:0]  sw1, //    threshold sel.     E1, C2, C1, D1 (DIP SW1)
                   output logic       bck, //    I2S bit clock,     PA7_J2
                   output logic       lrck, //   I2S l/r clk,       PA6_J1
                   output logic       scki, //   PCM1808 sys clk,   PA5_H4
                   output logic       fmt, //    PCM1808 FMT,       PA8_J10
                   output logic [1:0] md, //     PCM1808 MD1 & MD0, PC7_H13, PA9_H10
                   output logic       miso, //   SPI MISO,          PB4_K11
-                  output logic [7:0] LEDs //    debug LEDs         (see MAX1000 user guide)
+                  output logic [7:0] LEDs, //    debug LEDs        (see MAX1000 user guide)
+                  output logic       beat_out
                   );
 
+   ///////////////////////////////// reset
+   // active high reset, active low btns
    logic                             reset;
    assign reset = ~(nreset);
-   assign LEDs[0] = reset;
-   // active high reset, active low btns
+   //assign LEDs[0] = reset;
+   ///////////////////////////////// end reset
 
+   ///////////////////////////////// I2S/PCM1808
    assign md  = 2'b00; // see PCM1808 table 2 (slave mode)
    assign fmt = 0;     // see PCM1808 table 3 (i2s mode)
 
    logic                             newsample;
    logic [23:0]                      left, right;
    i2s pcm_in(clk, reset, din, bck, lrck, scki, left, right, newsample);
-   
+   ///////////////////////////////// end I2S/PCM1808
+
+   ///////////////////////////////// FFT
    logic                             fft_start, fft_done, i2s_load, fft_load, fft_reset, fft_creset, fft_write;
    logic [31:0]                      fft_wd;
    logic signed [15:0]               left_msbs;
@@ -32,14 +39,13 @@ module final_fpga(input logic         clk,   // 12MHz MAX1000 clk, H6
    logic [5:0]                       sample_ctr;
    
    assign fft_reset = reset | fft_creset;
-
    assign left_msbs = left[23:8];
    assign fft_rd    = left_msbs >>> 5; // arithmetic shift right
    fft fft(clk, fft_reset, fft_start, fft_load, fft_rd, fft_wd, fft_done);
    fft_control i2s_fft_glue(clk, reset, newsample, fft_done, fft_start, fft_load, fft_creset, fft_write, sample_ctr);
+   ///////////////////////////////// end FFT
 
-
-   // store result         
+   ///////////////////////////////// store result         
    logic [31:0]                      res_count; // result count
    logic                             posedge_fft_done;
    pos_edge pos_edge_fft_done(clk, fft_done, posedge_fft_done);
@@ -50,26 +56,41 @@ module final_fpga(input logic         clk,   // 12MHz MAX1000 clk, H6
      end
 
    logic [31:0]                       spectrum_result [0:31];
-   logic [31:0]                       spectrum_result_fixed [0:31];
    always_ff @(posedge clk) begin
       if (fft_write) 
         begin
-           spectrum_result[sample_ctr]       <= fft_wd;
-           if (res_count == 9901 || (res_count == 9900 && posedge_fft_done)) spectrum_result_fixed[sample_ctr] <= fft_wd;
+           spectrum_result[sample_ctr] <= fft_wd;
         end
    end
-   // end store result
+   ///////////////////////////////// end store result
 
-   // spi   
+   ///////////////////////////////// SPI
    logic [31:0] spi_data;
    logic [4:0]  spi_adr;
    assign spi_data = spectrum_result[spi_adr];
    spi_slave spi(clk, reset, uscki, umosi, uce, spi_data, spi_adr, miso);
+   ///////////////////////////////// end SPI
 
+   ///////////////////////////////// beat tracking
+   logic [7:0]  thresh, accum_stable;
+   logic        beat_ctr, posedge_beat_out;
+   assign thresh = {1'b0, sw1, 2'b0};
+   assign LEDs   = {accum_stable[7:1], beat_ctr};
+   beat_track beattrack(clk, reset, sample_ctr, fft_wd, fft_write, fft_done, thresh, beat_out, accum_stable);
+   pos_edge pos_edge_beat_out(clk, beat_out, posedge_beat_out);
+     
+   always_ff @(posedge clk) begin
+      if (reset)
+        beat_ctr <= 0;
+      else if (posedge_beat_out)
+        beat_ctr <= beat_ctr + 1'b1;
+   end
+   ///////////////////////////////// end beat tracking
+   
 endmodule // final_fpga
 
 typedef enum logic [3:0] {FFT_LOADING, FFT_STARTING, FFT_WAITING, FFT_WRITING, FFT_RESETTING, FFT_ERROR} statetype;
-module fft_control(input logic clk,
+module fft_control(input logic        clk,
                    input logic        reset,
                    input logic        newsample,
                    input logic        fft_done,

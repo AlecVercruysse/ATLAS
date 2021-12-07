@@ -8,3 +8,6 @@ arduino_servo_test/
 **/output_files/
 fft_test_out.memh
 **/.ipynb_checkpoints
+
+toplevel_test_in.memh
+# ^ this got too big! untracked. generate it via sim/gen_toplevel_test_in.py

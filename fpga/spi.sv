@@ -104,7 +104,7 @@ endmodule // spi_slave
 //          data_in <= {data_in[6:0], mosi};
 //       end
      
-
+// positive edge detection in synchronus logic
 module pos_edge(input logic clk,
                 input logic  in,
                 output logic out);
