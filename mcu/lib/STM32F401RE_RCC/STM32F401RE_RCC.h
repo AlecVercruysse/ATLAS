@@ -10,6 +10,10 @@
 // Definitions
 ///////////////////////////////////////////////////////////////////////////////
 
+// Global defines related to clock
+uint32_t SystemCoreClock;    // Updated by configureClock()
+#define HSE_VALUE 8000000    // Value of external input to OSC from ST-LINK
+
 #define __IO volatile
 
 // Base addresses
