@@ -217,13 +217,14 @@ module slade_fft_testbench();
 endmodule // fft_testbench
 
 module toplevel_testbench();
-   logic clk, nreset, din, uscki, umosi, miso, bck, lrck, scki, fmt, uce;
+   logic clk, nreset, din, uscki, umosi, miso, bck, lrck, scki, fmt, uce, beat_out;
+   logic [7:0] LEDs;
    logic [1:0] md;
    
    logic [63:0] idx;
    logic [31:0] sample_idx, bck_idx;
    logic [24:0] input_sample;
-   logic [23:0] input_data [0:63];
+   logic [23:0] input_data [0:9720234];
    
    // clk
    always
@@ -251,7 +252,7 @@ module toplevel_testbench();
    end
    assign din = lrck ? 0 : input_sample[24];
    
-   final_fpga dut(clk, nreset, din, uscki, umosi, uce, bck, lrck, scki, fmt, md, miso);
+   final_fpga dut(clk, nreset, din, uscki, umosi, uce, bck, lrck, scki, fmt, md, miso, LEDs, beat_out);
 
    // spi stuff
    always begin
