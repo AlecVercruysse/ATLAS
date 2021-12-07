@@ -26,14 +26,14 @@ module fft
    assign writea = load ? val_in : aout;
    assign writeb = load ? val_in : bout;
    assign we0    = load ?   1'b1 : we0_agu;
-   
+
    // AGU ENABLE LOGIC
    always_ff @(posedge clk)
-     begin	
+     begin
 	if      (start) enable <= 1;
 	else if (done || reset)  enable <= 0;
      end
-   
+
    // OUTPUT LOGIC
    logic [N_2-1:0] out_idx;
    assign wd    = N_2[0] ? rd1a : rd1b; // ram holding results depends on even-ness of log2(N-points)s?
@@ -43,9 +43,9 @@ module fft
    always_ff @(posedge clk)
      begin
 	if      (reset) out_idx <= 0;
-	else if (done)  out_idx <= out_idx + 1'b1; 
+	else if (done)  out_idx <= out_idx + 1'b1;
      end
-   
+
    fft_agu #(width, N_2) agu(clk, enable, reset, done, rdsel, we0_agu, adr0a_agu, adr0b_agu, we1, adr1a_agu, adr1b, twiddleadr);
    fft_twiddleROM #(width, N_2) twiddlerom(twiddleadr, twiddle);
 
@@ -58,7 +58,7 @@ module fft
 
 endmodule // fft
 
-module fft_load 
+module fft_load
   #(parameter width=16, N_2=5, hann=0) // hann: bool, whether or not to window.
    (input logic clk,
     input logic                reset,
@@ -67,13 +67,13 @@ module fft_load
     output logic [N_2-1:0]     adr0a_load,
     output logic [N_2-1:0]     adr0b_load,
     output logic [2*width-1:0] val_in);
-   
+
    logic [N_2-1:0]             idx;
    logic [width-1:0]           val_in_re;
-   
+
    bit_reverse #(N_2) reverseaddr(idx, adr0a_load);
    assign adr0b_load = adr0a_load;
-   
+
    always_ff @(posedge clk)
      begin
 	if (reset) begin
@@ -82,30 +82,31 @@ module fft_load
 	   idx <= idx + 1'b1;
 	end
      end
-   
+
    logic        [2*width-1:0] untruncated_mult;
    logic signed [width-1:0]   hann_coeff;
    hann_lut #(width, N_2) hann_rom(clk, idx, hann_coeff);
    assign untruncated_mult = hann_coeff * rd;
    assign val_in_re = hann ? untruncated_mult[2*width-2:width-1] : rd;
    assign val_in    = {val_in_re, 16'b0}; // imaginary is all zeros!
-   
+
 endmodule // fft_load
 
-module bit_reverse 
+module bit_reverse
   #(parameter N_2=5)
    (input logic [N_2-1:0] in,
     output logic [N_2-1:0] out);
-   
+
    genvar                  i;
    generate
       for(i=0; i<N_2; i=i+1) begin : BIT_REVERSE
 	 assign out[i] = in[N_2-i-1];
-      end	
+      end
    endgenerate
-   
+
 endmodule // bit_reverse
 
+// TESTED
 module fft_agu
   #(parameter width=16, N_2=5)
    (input logic            clk,
@@ -162,7 +163,7 @@ module fft_agu
 
 endmodule // fft_agu
 
-// UNTESTED, TODO: TEST
+// TESTED
 module calcAddr
   #(parameter width=16, N_2=5)
    (input logic  [N_2-1:0]    fftLevel,
@@ -200,7 +201,7 @@ module fft_twiddleROM
    //always @(posedge clk)
    //  twiddle <= vectors[twiddleadr];
    assign twiddle = vectors[twiddleadr];
-   
+
 endmodule // fft_twiddleROM
 
 
