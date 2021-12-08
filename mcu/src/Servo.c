@@ -5,14 +5,17 @@
 // Constants
 ////////////////////////////////////////////////
 
-#define SERVO_PIN    6
-#define BEAT_PIN     7
+#define SERVO_PIN    4
+#define BEAT_PIN     0
+
+#define USART_ID USART2_ID
 
 #define MIN_MICROS 770
 #define MAX_MICROS 2270
 #define CYCLE_MICROS 20000
 const float usPerDeg = (MAX_MICROS - MIN_MICROS)/180;
 
+char text[50];
 // takes in an angle from 0-180, spits out microseconds to write to servo
 long angleToMicros(float angle){
   return (long)(angle * usPerDeg) + MIN_MICROS;
@@ -25,10 +28,16 @@ int greenPatPoints[] = {770,  870,  966,  1091, 1208, 1328, 1442,
                        1532, 1664, 1792, 1862, 1978, 2134, 2269};
 
 // {type, start, end, timeMs} | 0 = cont, 1 = instant
-int greenPats[3][3] = {
-                       {0, 770,  1208},
-                       {2, 1532, 1978},
-                       {1, 1328, 1442} //1328, 1442
+// int greenPats[3][3] = {
+//                        {0, 770,  1208},
+//                        {2, 1532, 1978},
+//                        {1, 1328, 1442} //1328, 1442
+//                        };
+
+int greenPats[3][2] = {
+                       {770,  1208},
+                       {1532, 1978},
+                       {1328, 1442} //1328, 1442
                        };
 
 int getPos(int pats[][3], int patInd, int patLen){
@@ -96,7 +105,9 @@ int main(void) {
   // Beat Pin from FPGA
   pinMode(GPIOA, BEAT_PIN, GPIO_INPUT);
 
-  pinMode(GPIOA, 5, GPIO_OUTPUT);
+  //pinMode(GPIOA, 5, GPIO_OUTPUT);
+
+  USART_TypeDef* USART = initUSART(USART_ID);
 
   // Pattern Millis Timer:
   // PSC + 1 = 42000
@@ -132,21 +143,33 @@ int main(void) {
 
   int beatIntervalMs = 10000;
 
+  int patInd = 0;
+
+  int patState = 0;
+
   while(1){
 
     long microsDes = -1; 
-    microsDes = getPos(greenPats, 1, beatIntervalMs);
-    if(beatIntervalMs < 1000){ //< 1sec, bpm > 60
-       microsDes = getPos(greenPats, 2, beatIntervalMs);
-    } else if (beatIntervalMs >= 1000 && beatIntervalMs < 2000) { // < 2sec, 60 > bpm > 30 
-       microsDes = getPos(greenPats, 1, beatIntervalMs);
-    } else if (beatIntervalMs >= 2000){ // > 2sec, 30 > bpm
-       microsDes = getPos(greenPats, 0, beatIntervalMs);
-    }
-    
-    printf("\n%d\n", beatIntervalMs);
+    // microsDes = getPos(greenPats, 1, beatIntervalMs);
+    // if(beatIntervalMs < 1000){ //< 1sec, bpm > 60
+    //    microsDes = getPos(greenPats, 2, beatIntervalMs);
+    // } else if (beatIntervalMs >= 1000 && beatIntervalMs < 2000) { // < 2sec, 60 > bpm > 30 
+    //    microsDes = getPos(greenPats, 1, beatIntervalMs);
+    // } else if (beatIntervalMs >= 2000){ // > 2sec, 30 > bpm
+    //    microsDes = getPos(greenPats, 0, beatIntervalMs);
+    // }
+
+    // if(beatIntervalMs < 1000){ //< 1sec, bpm > 60
+    //   patInd = 0;
+    // } else if (beatIntervalMs >= 1000 && beatIntervalMs < 2000) { // < 2sec, 60 > bpm > 30 
+    //   patInd = 1;
+    // } else if (beatIntervalMs >= 2000){ // > 2sec, 30 > bpm
+    //   patInd = 2;
+    // }
 
     long curMicros = TIM10->CNT;
+
+    microsDes = greenPatPoints[patInd];
 
     if(curMicros < microsDes){
       digitalWrite(GPIOA, SERVO_PIN, 1);
@@ -159,9 +182,19 @@ int main(void) {
     uint8_t curBeatRead = digitalRead(GPIOA, BEAT_PIN);
 
     if (curBeatRead == 1 && prevBeatRead == 0){ // only on the rising edge
-      togglePin(GPIOA,5);
+      //togglePin(GPIOA,5);
       beatIntervalMs = (TIM11->CNT)/2;
+      //patState = ~patState;
+      if(patState == 0){
+        patInd += 1;
+      } else {
+        patInd -= 1;
+      }
       TIM11->CNT = 0;
+      // sprintf(text, "\n%d\n", beatIntervalMs);
+      // for (size_t j = 0; text[j]; j++) {
+      //     sendChar(USART, text[j]);
+      // }
     }
     prevBeatRead = curBeatRead;
 
@@ -171,9 +204,11 @@ int main(void) {
     //   TIM11->CNT = 0;
     // }
 
-    // if(patInd >= 14){
-    //   patInd = 0;
-    // }
+    if(patInd >= 14){
+      patState = 1;
+    } else if (patInd <= 0){
+      patState = 0;
+    }
 
   }
 
