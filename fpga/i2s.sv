@@ -1,18 +1,18 @@
-module final_fpga(input logic        clk,   //  12MHz MAX1000 clk, H6
-                  input logic        nreset, // global reset,      E6 (right btn)
-                  input logic        din, //    I2S DOUT,          PB6_G12
-                  input logic        uscki, //  SPI clk,           PB3_J12
-                  input logic        umosi, //  SPI MOSI,          PB5_J13
-                  input logic        uce, //    SPI CE,            PA10_L12
-                  input logic [3:0]  sw1, //    threshold sel.     E1, C2, C1, D1 (DIP SW1)
-                  output logic       bck, //    I2S bit clock,     PA7_J2
-                  output logic       lrck, //   I2S l/r clk,       PA6_J1
-                  output logic       scki, //   PCM1808 sys clk,   PA5_H4
-                  output logic       fmt, //    PCM1808 FMT,       PA8_J10
-                  output logic [1:0] md, //     PCM1808 MD1 & MD0, PC7_H13, PA9_H10
-                  output logic       miso, //   SPI MISO,          PB4_K11
-                  output logic [7:0] LEDs, //    debug LEDs        (see MAX1000 user guide)
-                  output logic       beat_out
+module final_fpga(input logic        clk,   //   12MHz MAX1000 clk, H6
+                  input logic        nreset, //  global reset,      E6 (right btn)
+                  input logic        din, //     I2S DOUT,          PB6_G12
+                  input logic        uscki, //   SPI clk,           PB3_J12
+                  input logic        umosi, //   SPI MOSI,          PB5_J13
+                  input logic        uce, //     SPI CE,            PA10_L12
+                  input logic [3:0]  sw1, //     threshold sel.     E1, C2, C1, D1 (DIP SW1)
+                  output logic       bck, //     I2S bit clock,     PA7_J2
+                  output logic       lrck, //    I2S l/r clk,       PA6_J1
+                  output logic       scki, //    PCM1808 sys clk,   PA5_H4
+                  output logic       fmt, //     PCM1808 FMT,       PA8_J10
+                  output logic [1:0] md, //      PCM1808 MD1 & MD0, PC7_H13, PA9_H10
+                  output logic       miso, //    SPI MISO,          PB4_K11
+                  output logic [7:0] LEDs, //    debug LEDs         (see MAX1000 user guide)
+                  output logic       beat_out // beat (to MCU)      H5 (thru a jumper to MCU)
                   );
 
    ///////////////////////////////// reset
@@ -78,7 +78,7 @@ module final_fpga(input logic        clk,   //  12MHz MAX1000 clk, H6
    assign LEDs   = {accum_stable[7:1], beat_ctr};
    beat_track beattrack(clk, reset, sample_ctr, fft_wd, fft_write, fft_done, thresh, beat_out, accum_stable);
    pos_edge pos_edge_beat_out(clk, beat_out, posedge_beat_out);
-     
+   
    always_ff @(posedge clk) begin
       if (reset)
         beat_ctr <= 0;
@@ -143,8 +143,8 @@ endmodule // control
 
 module i2s(input logic         clk,
            input logic         reset,
-           input logic         din, // PCM1808 DOUT,         PB6_G12
-           output logic        bck, // bit clock,            PA7_J2
+           input logic         din, //  PCM1808 DOUT,         PB6_G12
+           output logic        bck, //  bit clock,            PA7_J2
            output logic        lrck, // left/right clk,       PA6_J1
            output logic        scki, // PCM1808 system clock, PA5_H4
            output logic [23:0] left, 

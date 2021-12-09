@@ -12,7 +12,7 @@ module fft
     output logic [2*width-1:0] wd, // complex write data out
     output logic               done);
 
-   logic                       enable;  // for AGU operation (TODO: rename AGU module input to enable)
+   logic                       enable;  // for AGU operation
    logic                       rdsel;   // read from RAM0 or RAM1
    logic                       we0_agu, we0, we1; // RAMx write enable
    logic [N_2 - 1:0]           adr0a_agu, adr0b_agu, adr0a, adr0b, adr0a_load, adr0b_load, adr0a_load_agu, adr1a, adr1b, adr1a_agu;
@@ -106,7 +106,7 @@ module bit_reverse
 
 endmodule // bit_reverse
 
-// TESTED
+// 32-point FFT address generation unit
 module fft_agu
   #(parameter width=16, N_2=5)
    (input logic            clk,
@@ -158,12 +158,12 @@ module fft_agu
    assign we0 = fftLevel[0] & enable;
    assign we1 = ~fftLevel[0] & enable;
 
-   // flips every cycle, TODO: should this start on 0? Which RAM do we preload?
+   // flips every cycle
    assign rdsel = fftLevel[0];
 
 endmodule // fft_agu
 
-// TESTED
+// todo: parameterize for more than 32-point FFT.
 module calcAddr
   #(parameter width=16, N_2=5)
    (input logic  [N_2-1:0]    fftLevel,
@@ -182,7 +182,6 @@ module calcAddr
 
       adrB = ((tempB << fftLevel) | (tempB >> (N_2 - fftLevel))) & 5'h1f;
       twiddleadr = ((32'hffff_fff0 >> fftLevel) & 32'hf) & flyInd;
-      //twiddleadr = (4'b1111 >> fftLevel) & flyInd[3:0]; //  TODO: parameterize
    end
 endmodule // calcAddr
 
@@ -197,9 +196,6 @@ module fft_twiddleROM
 
    logic [2*width-1:0]         vectors [0:2**(N_2-1)-1];
    initial $readmemb("rom/twiddle.vectors", vectors);
-
-   //always @(posedge clk)
-   //  twiddle <= vectors[twiddleadr];
    assign twiddle = vectors[twiddleadr];
 
 endmodule // fft_twiddleROM
@@ -207,6 +203,7 @@ endmodule // fft_twiddleROM
 
 // make sure the script rom/hann.py has been run with
 // the desired width! the `width` param should be equal to `q` in the script.
+// todo: test hann windowing (does the read need to be clocked)?
 module hann_lut
   #(parameter width=16, N_2=5)
    (input logic              clk,
@@ -222,7 +219,8 @@ module hann_lut
 endmodule // hann_lut
 
 
-// explicit so that it is inferred.
+// explicit so that it is inferred, and we control
+// the truncation of the output.
 module mult
   #(parameter width=16)
    (input logic signed [width-1:0]  a,
@@ -241,7 +239,7 @@ endmodule // mult
 
 module complex_mult
   #(parameter width=16)
-   (input logic [2*width-1:0] a,
+   (input logic [2*width-1:0]  a,
     input logic [2*width-1:0]  b,
     output logic [2*width-1:0] out);
 
@@ -274,15 +272,9 @@ module fft_butterfly
 
 
    // expand to re and im components
-   //assign twiddle_re = twiddle[2*width-1:width];
-   //assign twiddle_im = twiddle[width-1:0];
    assign a_re = a[2*width-1:width];
    assign a_im = a[width-1:0];
-   //assign b_re = b[2*width-1:width];
-   //assign b_im = b[width-1:0];
-   assign aout = {aout_re, aout_im};
-   assign bout = {bout_re, bout_im};
-
+   
    // perform computation
    complex_mult #(width) twiddle_mult(b, twiddle, b_mult);
    assign b_re_mult = b_mult[31:16];
@@ -294,6 +286,10 @@ module fft_butterfly
    assign bout_re = a_re - b_re_mult;
    assign bout_im = a_im - b_im_mult;
 
+   // pack re and im outputs
+   assign aout = {aout_re, aout_im};
+   assign bout = {bout_re, bout_im};
+   
 endmodule // fft_butterfly
 
 
@@ -325,12 +321,14 @@ endmodule // twoport_RAM
 
 module complex_mag
   #(parameter width=16)
-   (input logic [2*width-1:0] a,
+   (input logic [2*width-1:0]  a,
     output logic [2*width-1:0] out);
    
    logic [2*width-1:0]         b;
    logic signed [width-1:0]    b_re, b_im;
-   assign b_re = a[31:16]; assign b_im = -a[15:0];
+   
+   assign b_re = a[31:16]; 
+   assign b_im = -a[15:0];
    assign b = {b_re, b_im};
 
    complex_mult mag_mult(a, b, out);

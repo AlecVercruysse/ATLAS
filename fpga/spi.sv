@@ -1,13 +1,12 @@
 
-// todo test!!!!!!!!!!!!!!!!
 typedef enum logic [3:0] {SPI_IDLE, SPI_LOAD, SPI_WAIT, SPI_SHIFT, SPI_ERROR} spi_state;
 module spi_slave(input logic        clk,
                  input logic        reset,
-                 input logic        uscki, 
-                 input logic        umosi,
-                 input logic        uce,
-                 input logic [31:0] data, // 32-bit. based on adr.
-                 output logic [4:0] adr, // to address data ram
+                 input logic        uscki, // non-synchronus miso
+                 input logic        umosi, // non-synchronus mosi
+                 input logic        uce,   // non-synchronus chip-enable
+                 input logic [31:0] data,  // 32-bit. based on adr.
+                 output logic [4:0] adr,   // to address data ram
                  output logic       miso);
    
    // cpol = 0 (idle low)
@@ -18,22 +17,21 @@ module spi_slave(input logic        clk,
    sync   ce_sync(clk,   uce,   ce);
 
    logic                      posedge_scki;
-   // , negedge_scki;
    pos_edge pos_edge_scki(clk, scki, posedge_scki);
-   // neg_edge neg_edge_scki(clk, scki, negedge_scki);
    
-   //////////////////
    logic [31:0]               data_out;
    logic [4:0]                bit_idx;
    spi_state state, nextstate;
    
    assign miso = data_out[31]; // MSB. shifted out
 
+   // SPI state register
    always_ff @(posedge clk) begin
       if (reset) state <= SPI_IDLE;
       else state <= nextstate;
    end
 
+   // SPI state transition logic
    always_comb begin
       case (state)
         SPI_IDLE : if (ce) nextstate <= SPI_LOAD;
@@ -73,37 +71,9 @@ module spi_slave(input logic        clk,
       else if (state == SPI_SHIFT)
         data_out <= {data_out[30:0], 1'b0};
    end
-endmodule // spi_slave
    
-   // always_ff @(posedge clk) begin
-   //    if (reset) begin
-   //       sample_idx <= 0;
-   //       bit_idx <= 0;
-   //       data_out <= 0; // throw away the first 4 bytes
-   //    end
-   //    else if (posedge_scki && ce) begin
-   //       // reset from mcu:
-   //       if (data_in == 8'hff) begin
-   //          sample_idx <= 0;
-   //          bit_idx <= 0;
-   //          data_out <= 0; 
-   //       end else begin
-   //          if (bit_idx == 30) begin
-   //             sample_idx <= sample_idx + 1;
-   //             data_out <= {data_out[30:0], 1'b0};
-   //          end else if (bit_idx == 31) begin
-   //             data_out <= data;
-   //          end else begin
-   //             data_out <= {data_out[30:0], 1'b0};
-   //          end
-   //          bit_idx <= bit_idx + 1'b1;
-   //       end
-   //    end
-// 
-//       if (negedge_scki && ce) begin // sample on the negative edge 
-//          data_in <= {data_in[6:0], mosi};
-//       end
-     
+endmodule // spi_slave
+
 // positive edge detection in synchronus logic
 module pos_edge(input logic clk,
                 input logic  in,
@@ -117,6 +87,8 @@ module pos_edge(input logic clk,
 
 endmodule // pos_edge
 
+// negative edge detection in synchronus logic
+// (unused)
 module neg_edge(input logic clk,
                 input logic  in,
                 output logic out);
@@ -129,13 +101,16 @@ module neg_edge(input logic clk,
 
 endmodule // pos_edge
 
+// synchronizer chain
 module sync(input logic clk,
             input logic  in,
             output logic out);
+   
    logic                 m1;
    always_ff @(posedge clk) begin
       m1 <= in;
       out <= m1;
    end
+   
 endmodule // sync
 

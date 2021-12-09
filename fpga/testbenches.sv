@@ -118,7 +118,7 @@ module ram_testbench #(parameter width=16, N_2=5)();
 endmodule // ram_testbench
 
 
-// todo outdated (reset signal). tested working.
+// outdated (reset signal). previously tested working.
 module agu_testbench #(parameter width=16, N_2=5)();
 
    // inputs
@@ -153,6 +153,14 @@ module agu_testbench #(parameter width=16, N_2=5)();
 
 endmodule // agu_testbench
 
+// fft module test. 
+// loads input from          rom/slade_test_in.memh,
+// compares output to        rom/slade_test_out.memh,
+// writes computed output to rom/fft_test_out.memh.
+// (see "/sim/verify sim fft.ipynb" to process output)
+//
+// Note that the slade output values are incorrect, so we should
+// verify in the jupyter notebook, not with slade_test_out.memh
 module slade_fft_testbench();
    logic clk;
    logic start, load, done, reset;
@@ -166,7 +174,7 @@ module slade_fft_testbench();
    // https://stackoverflow.com/questions/25607124/test-bench-for-writing-verilog-output-to-a-text-file
    integer             f; // file pointer?
    
-   fft #(16, 5, 0) dut(clk, reset, start, load, rd, wd, done); // no hann!!
+   fft #(16, 5, 0) dut(clk, reset, start, load, rd, wd, done); // no hann
    
    // clk
    always
@@ -179,7 +187,7 @@ module slade_fft_testbench();
      begin
 	$readmemh("rom/slade_test_in.memh", input_data);
 	$readmemh("rom/slade_test_out.memh", expected_out);
-        f = $fopen("rom/fft_test_out.memh", "w"); // write computed vals!
+        f = $fopen("rom/fft_test_out.memh", "w"); // write computed vals
 	idx=0; reset=1; #40; reset=0;
      end	
    
@@ -211,7 +219,6 @@ module slade_fft_testbench();
 	end else begin
 	   $display("Slade FFT test complete.");
            $fclose(f);
-	   //$finish;
 	end
      end
 endmodule // fft_testbench
@@ -248,7 +255,7 @@ module toplevel_testbench();
       sample_idx <= sample_idx + 1;
    end
    always @(negedge bck) begin
-      input_sample <= {input_sample[23:0], 1'b0}; // sketchy: 25 bits wide to account for first non-sampling bck.
+      input_sample <= {input_sample[23:0], 1'b0}; // 25 bits wide to account for first non-sampling bck.
    end
    assign din = lrck ? 0 : input_sample[24];
    
