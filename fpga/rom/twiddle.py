@@ -2,9 +2,6 @@
 # 2021-11-16
 # generate N-point q-bit two's complement integer twiddle bits
 
-# this is generated using Slade as a refernce, so note the sign of the twiddle exponent is positive.
-# this matches table II in slade for the most part, except in some small instances where it seems that his binary representations are a bit off the real numbers.
-
 import numpy as np
 
 
