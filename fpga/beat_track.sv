@@ -66,8 +66,7 @@ module beat_track
    logic [31:0]                wait_ctr;
    logic                       over;
 
-   // translate python code. TODO should this be a state machine?
-   // it's kind of gross!
+   // debouncing & thresholding logic
    always_ff @(posedge clk) begin
       if (reset) begin
          wait_ctr <= wait_samples + 1'b1;
