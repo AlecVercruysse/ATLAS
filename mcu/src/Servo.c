@@ -5,81 +5,83 @@
 // Constants
 ////////////////////////////////////////////////
 
-#define SERVO_PIN    4
-#define BEAT_PIN     0
+#define SERVO_PIN    4 // GPIOA
+#define BEAT_PIN     0 // GPIOA
+#define GREEN_PIN    10 // GPIOB
+#define RED_PIN      1 // GPIOA
 
 #define USART_ID USART2_ID
 
 #define MIN_MICROS 770
 #define MAX_MICROS 2270
 #define CYCLE_MICROS 20000
-const float usPerDeg = (MAX_MICROS - MIN_MICROS)/180;
 
-char text[50];
+// Used for testing
+const float usPerDeg = (MAX_MICROS - MIN_MICROS)/180;
 // takes in an angle from 0-180, spits out microseconds to write to servo
 long angleToMicros(float angle){
   return (long)(angle * usPerDeg) + MIN_MICROS;
 }
 
-int redPatPoints[] = {770, 917,  1022, 1136, 1242, 1370, 1465, 
-                    1599, 1724, 1852, 1960, 2084, 2204, 2269};
+// Servo Pattern points
 
-int greenPatPoints[] = {770,  870,  966,  1091, 1208, 1328, 1442, 
-                       1532, 1664, 1792, 1862, 1978, 2134, 2269};
+// Red laser pattern locations
+#define RPP0 770
+#define RPP1 917
+#define RPP2 1022
+#define RPP3 1136
+#define RPP4 1242
+#define RPP5 1370
+#define RPP6 1465
+#define RPP7 1599
+#define RPP8 1724
+#define RPP9 1852
+#define RPPA 1960
+#define RPPB 2084
+#define RPPC 2204
+#define RPPD 2269
 
-// {type, start, end, timeMs} | 0 = cont, 1 = instant
-// int greenPats[3][3] = {
-//                        {0, 770,  1208},
-//                        {2, 1532, 1978},
-//                        {1, 1328, 1442} //1328, 1442
+// Green laser pattern locations
+#define GPP0 770  
+#define GPP1 870
+#define GPP2 966
+#define GPP3 1091
+#define GPP4 1208
+#define GPP5 1328
+#define GPP6 1442
+#define GPP7 1532
+#define GPP8 1664
+#define GPP9 1792
+#define GPPA 1862
+#define GPPB 1978
+#define GPPC 2134
+#define GPPD 2269   
+
+//Pattern set 1
+
+// start, end, red, green
+//  int pats[6][4] = {
+//                        {GPP0,  GPP1, 1, 1},
+//                        {RPP0,  RPP1, 0, 1},
+//                        {GPP2, GPP3,  1, 1},
+//                        {RPP3, RPP4,  1, 0},
+//                        {RPP5, RPP6,  1, 0},
+//                        {RPP7, RPP8,  1, 0} //1328, 1442
 //                        };
 
-int greenPats[3][2] = {
-                       {770,  1208},
-                       {1532, 1978},
-                       {1328, 1442} //1328, 1442
-                       };
+// Pattern set 2
 
-int getPos(int pats[][3], int patInd, int patLen){
+int pats[6][4] = {
+                  {GPPC,  GPPD, 1, 1},
+                  {GPPA,  GPPB, 1, 1},
+                  {GPP8, GPP9,  0, 1},
+                  {RPP6, RPP7,  1, 0},
+                  {RPP4, RPP5,  1, 0},
+                  {RPP2, RPP3,  1, 0}
+                  };
 
-  long curTimeMs = (TIM9->CNT)/2;
-
-  int patType = pats[patInd][0];
-  int patStart = pats[patInd][1];
-  int patEnd = pats[patInd][2];
-
-  int pos = -1;
-  float fracPat = (float)curTimeMs / (float)patLen;
-
-  if(patType == 0){
-    if(fracPat < 0.5){
-      pos = patStart + (int)(fracPat * 2.0 * (patEnd - patStart));
-    } else if (fracPat >= 0.5){
-      pos = patEnd - (int)(((fracPat-0.5) * 2.0) * (patEnd - patStart));
-    }
-  }
-
-  if(patType == 1){
-    if(fracPat < 0.5){
-      pos = patStart;
-    } else if (fracPat >= 0.5){
-      pos = patEnd;
-    }
-  }
-
-  if(patType == 2){
-    if(fracPat < 0.5){
-      pos = patStart + (int)(fracPat * 2 * (patEnd - patStart));
-    } else if (fracPat >= 0.5){
-      pos = patEnd;
-    }
-  }
-
-  if(curTimeMs >= patLen){
-    TIM9->CNT = 0;
-  }
-  return pos;
-}
+// used for printing
+char text[50];
 
 int main(void) {
   // Configure flash latency and set clock to run at 84 MHz
@@ -99,17 +101,21 @@ int main(void) {
   RCC->APB2ENR |= (1 << 17); //Enable TIM10
   RCC->APB2ENR |= (1 << 18); //Enable TIM11
   RCC->AHB1ENR.GPIOAEN = 1; // Enable GPIOA Clock
+  RCC->AHB1ENR.GPIOBEN = 1; // Enable GPIOA Clock
 
   // Servo Pin
   pinMode(GPIOA, SERVO_PIN, GPIO_OUTPUT);
   // Beat Pin from FPGA
   pinMode(GPIOA, BEAT_PIN, GPIO_INPUT);
+  // Red Laser Transistor -> Relay
+  pinMode(GPIOA, RED_PIN, GPIO_OUTPUT);
+  // Green Laser Transistor -> Relay
+  pinMode(GPIOB, GREEN_PIN, GPIO_OUTPUT);
 
-  //pinMode(GPIOA, 5, GPIO_OUTPUT);
 
   USART_TypeDef* USART = initUSART(USART_ID);
 
-  // Pattern Millis Timer:
+  // Print millis timer
   // PSC + 1 = 42000
   // 84MHz with a 42000 prescaler gives 0.5 ms resolution
   // Can count t0 32 seconds maximum
@@ -135,42 +141,40 @@ int main(void) {
   TIM11->EGR |= (1 << 0);  // Generate an update event
 
 
-  TIM9->CNT = 0;  // Pattern millis*2
+  TIM9->CNT = 0;  // Print
   TIM10->CNT = 0; // Servo Micros
   TIM11->CNT = 0; // BPM
 
-  uint8_t prevBeatRead = 0;
+  uint8_t prevBeatRead = 0; // boolean variable that tracks previous read value
 
-  int beatIntervalMs = 10000;
+  int beatIntervalMs = 10000; 
 
   int patInd = 0;
 
-  int patState = 0;
+  uint8_t patState = 0;
+
+  digitalWrite(GPIOB, GREEN_PIN, 1);
+  digitalWrite(GPIOA, RED_PIN, 1);
 
   while(1){
 
-    long microsDes = -1; 
-    // microsDes = getPos(greenPats, 1, beatIntervalMs);
-    // if(beatIntervalMs < 1000){ //< 1sec, bpm > 60
-    //    microsDes = getPos(greenPats, 2, beatIntervalMs);
-    // } else if (beatIntervalMs >= 1000 && beatIntervalMs < 2000) { // < 2sec, 60 > bpm > 30 
-    //    microsDes = getPos(greenPats, 1, beatIntervalMs);
-    // } else if (beatIntervalMs >= 2000){ // > 2sec, 30 > bpm
-    //    microsDes = getPos(greenPats, 0, beatIntervalMs);
-    // }
+    // Pattern selection
+    
+    if(beatIntervalMs < 250){ //< 0.25sec, bpm > 240
+      patInd = 0;
+    } else if(beatIntervalMs < 500){ //< 0.5sec, bpm > 120
+      patInd = 2;
+    } else if(beatIntervalMs < 1000){ //< 1sec, bpm > 60
+      patInd = 3;
+    } else if (beatIntervalMs < 2000) { // < 2sec, 60 > bpm > 30 
+      patInd = 4;
+    } else if (beatIntervalMs >= 2000){ // > 2sec, 30 > bpm
+      patInd = 5;
+    }
 
-    // if(beatIntervalMs < 1000){ //< 1sec, bpm > 60
-    //   patInd = 0;
-    // } else if (beatIntervalMs >= 1000 && beatIntervalMs < 2000) { // < 2sec, 60 > bpm > 30 
-    //   patInd = 1;
-    // } else if (beatIntervalMs >= 2000){ // > 2sec, 30 > bpm
-    //   patInd = 2;
-    // }
-
+    // Writes Servo PWM signal out
     long curMicros = TIM10->CNT;
-
-    microsDes = greenPatPoints[patInd];
-
+    long microsDes = pats[patInd][patState];
     if(curMicros < microsDes){
       digitalWrite(GPIOA, SERVO_PIN, 1);
     } else if(curMicros < CYCLE_MICROS){
@@ -182,35 +186,25 @@ int main(void) {
     uint8_t curBeatRead = digitalRead(GPIOA, BEAT_PIN);
 
     if (curBeatRead == 1 && prevBeatRead == 0){ // only on the rising edge
-      //togglePin(GPIOA,5);
       beatIntervalMs = (TIM11->CNT)/2;
-      //patState = ~patState;
-      if(patState == 0){
-        patInd += 1;
-      } else {
-        patInd -= 1;
-      }
-      TIM11->CNT = 0;
-      // sprintf(text, "\n%d\n", beatIntervalMs);
+
+      digitalWrite(GPIOA, RED_PIN, pats[patInd][2]);
+      digitalWrite(GPIOB, GREEN_PIN, pats[patInd][3]);
+      
+      // sprintf(text, "\n interval: %d | ind: %d | red: %d | green: %d\n", beatIntervalMs, patInd, pats[patInd][2], pats[patInd][3]);
       // for (size_t j = 0; text[j]; j++) {
       //     sendChar(USART, text[j]);
       // }
+      TIM11->CNT = 0;
     }
     prevBeatRead = curBeatRead;
 
-    // long curTimeMs = (TIM11->CNT / 2);
-    // if(curTimeMs >= 1000){
-    //   patInd += 1;
-    //   TIM11->CNT = 0;
-    // }
-
-    if(patInd >= 14){
-      patState = 1;
-    } else if (patInd <= 0){
-      patState = 0;
+    if(TIM9->CNT > 200){
+        // sprintf(text, "\n%d  %d  %d\n", beatIntervalMs, patInd, patState);
+        // for (size_t j = 0; text[j]; j++) {
+        //     sendChar(USART, text[j]);
+        // }
+        TIM9->CNT = 0;
     }
-
   }
-
-
 }
