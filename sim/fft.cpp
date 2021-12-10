@@ -1,11 +1,12 @@
+//32 point FFT implementation in C++ based on Slade paper
+
 #include <stdio.h>
 
 int main(){
 
     typedef int16_t newType;
 
-    printf("Hello world \n");
-
+    // Initial real data
      newType Data_r[32] = {
         0x3FF,
         0x3FF,
@@ -48,44 +49,7 @@ int main(){
         0xfc01
     };
 
-    //  newType Data_r[32] = {
-    //     0x3FF,
-    //     0x3FF,
-    //     0x3FF,
-    //     0x3FF,
-    //     0x3FF,
-    //     0x3FF,
-    //     0x3FF,
-    //     0x3FF,
-
-    //     0xfc01,
-    //     0xfc01,
-    //     0xfc01,
-    //     0xfc01,
-    //     0xfc01,
-    //     0xfc01,
-    //     0xfc01,
-    //     0xfc01,
-
-    //     0x3FF,
-    //     0x3FF,
-    //     0x3FF,
-    //     0x3FF,
-    //     0x3FF,
-    //     0x3FF,
-    //     0x3FF,
-    //     0x3FF,
-
-    //     0xfc01,
-    //     0xfc01,
-    //     0xfc01,
-    //     0xfc01,
-    //     0xfc01,
-    //     0xfc01,
-    //     0xfc01,
-    //     0xfc01
-    // };
-
+    // Initial imaginary data
      newType Data_i[32] = {
         0x0,
         0x0,
@@ -121,6 +85,7 @@ int main(){
         0x0
     };
 
+    // twiddle factors real
     newType Tw_r[16] = {
         0x7fff,
         0x7d89,
@@ -140,6 +105,7 @@ int main(){
         0x8277
     };
 
+    // twiddle factors imaginary
     newType Tw_i[16] = {
         0,
         0x1859,
@@ -159,9 +125,8 @@ int main(){
         0x1859
     };
 
-
-    for(newType i = 0; i < 5; i++){
-        for(newType j = 0; j < 16; j++){
+    for(newType i = 0; i < 5; i++){ // 5 levels for 2^5 = 32 point FFT
+        for(newType j = 0; j < 16; j++){ // operating on 16 bit ints
             newType ja=j<<1;
             newType jb=ja+1;
             ja = ((ja << i) | (ja >> (5-i))) & 0x1f; // Address A; 5 bit circular left shift
@@ -169,12 +134,12 @@ int main(){
             newType TwAddr = ((0xfffffff0 >> i) & 0xf) & j; // Twiddle addresses
 
             newType temp_r = ((Data_r[jb] * Tw_r[TwAddr]) / 32768) - ((Data_i[jb] * Tw_i[TwAddr]) /32768);
-            newType temp_i = ((Data_r[jb] * Tw_i[TwAddr]) / 32768) + ((Data_i[jb] * Tw_r[TwAddr]) / 32768); 
-            //newType temp_r = ((Data_r[jb] * Tw_r[TwAddr]) >> 15) - ((Data_i[jb] * Tw_i[TwAddr]) >> 15);
-            //newType temp_i = ((Data_r[jb] * Tw_i[TwAddr]) >> 15) + ((Data_i[jb] * Tw_r[TwAddr]) >> 15); 
+            newType temp_i = ((Data_r[jb] * Tw_i[TwAddr]) / 32768) + ((Data_i[jb] * Tw_r[TwAddr]) / 32768);
             if(ja == 0 || jb == 0){
                 printf("2nd val, ja: %d, jb: %d, realA: %x, realB %x, tempR: %x, tempI: %x, TwR: %x, TwI: %x, TwAddr: %d, \n",ja, jb, Data_r[ja], Data_r[jb],temp_r, temp_i, Tw_r[TwAddr], Tw_i[TwAddr], TwAddr);
             }
+
+            //Sets data for level
             Data_r[jb] = Data_r[ja] - temp_r;
             Data_i[jb] = Data_i[ja] - temp_i;
             Data_r[ja] += temp_r;
