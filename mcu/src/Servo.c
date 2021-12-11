@@ -179,14 +179,14 @@ int main(void) {
     } else {
       TIM10->CNT = 0;
     }
-    
-    digitalWrite(GPIOA, RED_PIN, pats[patInd][2]);
-    digitalWrite(GPIOB, GREEN_PIN, pats[patInd][3]);
-    
+        
     uint8_t curBeatRead = digitalRead(GPIOA, BEAT_PIN);
     if (curBeatRead == 1 && prevBeatRead == 0){ // only on the rising edge
       beatIntervalMs = (TIM11->CNT)/2;
       patState ^= 1;
+      digitalWrite(GPIOA, RED_PIN, pats[patInd][2]);
+      digitalWrite(GPIOB, GREEN_PIN, pats[patInd][3]);
+
       // sprintf(text, "\n interval: %d | ind: %d | red: %d | green: %d\n", beatIntervalMs, patInd, pats[patInd][2], pats[patInd][3]);
       // for (size_t j = 0; text[j]; j++) {
       //     sendChar(USART, text[j]);
