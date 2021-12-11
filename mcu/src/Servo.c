@@ -101,7 +101,7 @@ int main(void) {
   RCC->APB2ENR |= (1 << 17); //Enable TIM10
   RCC->APB2ENR |= (1 << 18); //Enable TIM11
   RCC->AHB1ENR.GPIOAEN = 1; // Enable GPIOA Clock
-  RCC->AHB1ENR.GPIOBEN = 1; // Enable GPIOA Clock
+  RCC->AHB1ENR.GPIOBEN = 1; // Enable GPIOB Clock
 
   // Servo Pin
   pinMode(GPIOA, SERVO_PIN, GPIO_OUTPUT);
@@ -146,12 +146,9 @@ int main(void) {
   TIM11->CNT = 0; // BPM
 
   uint8_t prevBeatRead = 0; // boolean variable that tracks previous read value
-
-  int beatIntervalMs = 10000; 
-
-  int patInd = 0;
-
-  uint8_t patState = 0;
+  int beatIntervalMs = 10000; // keeps track of time since last beat in ms?
+  int patInd = 0;             // pattern index pats[idx][0:start, 1:end, 2:red, 3:green]
+  uint8_t patState = 0;       // 0 or 1 (e.g. start or end state)
 
   digitalWrite(GPIOB, GREEN_PIN, 1);
   digitalWrite(GPIOA, RED_PIN, 1);
@@ -182,15 +179,14 @@ int main(void) {
     } else {
       TIM10->CNT = 0;
     }
-
+    
+    digitalWrite(GPIOA, RED_PIN, pats[patInd][2]);
+    digitalWrite(GPIOB, GREEN_PIN, pats[patInd][3]);
+    
     uint8_t curBeatRead = digitalRead(GPIOA, BEAT_PIN);
-
     if (curBeatRead == 1 && prevBeatRead == 0){ // only on the rising edge
       beatIntervalMs = (TIM11->CNT)/2;
-
-      digitalWrite(GPIOA, RED_PIN, pats[patInd][2]);
-      digitalWrite(GPIOB, GREEN_PIN, pats[patInd][3]);
-      
+      patState ^= 1;
       // sprintf(text, "\n interval: %d | ind: %d | red: %d | green: %d\n", beatIntervalMs, patInd, pats[patInd][2], pats[patInd][3]);
       // for (size_t j = 0; text[j]; j++) {
       //     sendChar(USART, text[j]);
